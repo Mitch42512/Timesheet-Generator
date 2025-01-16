@@ -4,7 +4,7 @@ import { useSmartGoalsStore, SmartGoal } from '../../store/useSmartGoalsStore';
 import { SmartGoalModal } from './SmartGoalModal';
 
 export const SmartGoalsPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStates, setModalStates] = useState<{ [key: string]: boolean }>({});
   const [editingGoal, setEditingGoal] = useState<SmartGoal | null>(null);
   const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
   const { goals, addGoal, updateGoal, toggleMilestone, deleteGoal } = useSmartGoalsStore();
@@ -12,24 +12,43 @@ export const SmartGoalsPage: React.FC = () => {
   const handleSubmit = (goalData: Omit<SmartGoal, 'id' | 'createdAt'>) => {
     if (editingGoal) {
       updateGoal(editingGoal.id, goalData);
+      setModalStates(prev => ({
+        ...prev,
+        [editingGoal.id]: false
+      }));
     } else {
       addGoal({
         ...goalData,
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
       });
+      setModalStates(prev => ({
+        ...prev,
+        new: false
+      }));
     }
     setEditingGoal(null);
   };
 
   const handleEdit = (goal: SmartGoal) => {
     setEditingGoal(goal);
-    setIsModalOpen(true);
+    setModalStates(prev => ({
+      ...prev,
+      [goal.id]: true
+    }));
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
+    setModalStates({});
     setEditingGoal(null);
+  };
+
+  const handleAddNewClick = () => {
+    setEditingGoal(null);
+    setModalStates(prev => ({
+      ...prev,
+      new: true
+    }));
   };
 
   const calculateProgress = (milestones: SmartGoal['milestones']) => {
@@ -48,7 +67,7 @@ export const SmartGoalsPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">SMART Goals</h1>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleAddNewClick}
           className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           <Plus className="w-5 h-5" />
@@ -164,11 +183,21 @@ export const SmartGoalsPage: React.FC = () => {
         ))}
       </div>
 
+      {goals.map(goal => (
+        <SmartGoalModal
+          key={goal.id}
+          isOpen={!!modalStates[goal.id]}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmit}
+          initialData={goal}
+        />
+      ))}
+
       <SmartGoalModal
-        isOpen={isModalOpen}
+        isOpen={!!modalStates.new}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
-        initialData={editingGoal || undefined}
+        initialData={undefined}
       />
     </div>
   );

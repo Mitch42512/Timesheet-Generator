@@ -11,7 +11,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabCh
   const [isCareerDropdownOpen, setIsCareerDropdownOpen] = useState(false);
 
   const tabs = [
-    { id: 'home', label: 'Home', icon: Home },
+    { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'accounts', label: 'Accounts', icon: ClipboardList },
     { id: 'timesheet', label: 'Timesheet', icon: CalendarDays },
     { id: 'statistics', label: 'Statistics', icon: BarChart },

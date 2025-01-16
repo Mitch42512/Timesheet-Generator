@@ -3,7 +3,7 @@ import { CategorySection } from './CategorySection';
 import { useTrafficLightStore } from '../../store/useTrafficLightStore';
 import { ChevronDown } from 'lucide-react';
 import { Overview } from './Overview';
-import { roleRequirements } from './roleRequirementsData';
+import { trafficLightRequirements } from './trafficLightRequirements';
 
 export const TrafficLightPage: React.FC = () => {
   const { addItem, selectedRole, setSelectedRole } = useTrafficLightStore();
@@ -56,7 +56,7 @@ export const TrafficLightPage: React.FC = () => {
               title="Managing Clients and Relationships"
               category="clientRelations"
               role={selectedRole}
-              defaultItems={roleRequirements[selectedRole][0].items}
+              defaultItems={trafficLightRequirements[selectedRole][0].items}
               onAddItem={() => handleAddItem('clientRelations')}
               bgColor="rgba(0, 0, 255, 0.2)"
             />
@@ -65,7 +65,7 @@ export const TrafficLightPage: React.FC = () => {
               title="Winning and Selling Work"
               category="sellingWork"
               role={selectedRole}
-              defaultItems={roleRequirements[selectedRole][1].items}
+              defaultItems={trafficLightRequirements[selectedRole][1].items}
               onAddItem={() => handleAddItem('sellingWork')}
               bgColor="rgba(255, 215, 0, 0.2)"
             />
@@ -74,7 +74,7 @@ export const TrafficLightPage: React.FC = () => {
               title="Project Management"
               category="projectManagement"
               role={selectedRole}
-              defaultItems={roleRequirements[selectedRole][2].items}
+              defaultItems={trafficLightRequirements[selectedRole][2].items}
               onAddItem={() => handleAddItem('projectManagement')}
               bgColor="rgba(128, 0, 128, 0.2)"
             />
@@ -83,7 +83,7 @@ export const TrafficLightPage: React.FC = () => {
               title="Delivery and Execution"
               category="delivery"
               role={selectedRole}
-              defaultItems={roleRequirements[selectedRole][3].items}
+              defaultItems={trafficLightRequirements[selectedRole][3].items}
               onAddItem={() => handleAddItem('delivery')}
               bgColor="rgba(0, 128, 0, 0.2)"
             />
@@ -92,7 +92,7 @@ export const TrafficLightPage: React.FC = () => {
               title="People Management"
               category="peopleManagement"
               role={selectedRole}
-              defaultItems={roleRequirements[selectedRole][4].items}
+              defaultItems={trafficLightRequirements[selectedRole][4].items}
               onAddItem={() => handleAddItem('peopleManagement')}
               bgColor="rgba(255, 192, 203, 0.4)"
             />
@@ -101,7 +101,7 @@ export const TrafficLightPage: React.FC = () => {
               title="Commercial Acumen"
               category="commercialAcumen"
               role={selectedRole}
-              defaultItems={roleRequirements[selectedRole][5].items}
+              defaultItems={trafficLightRequirements[selectedRole][5].items}
               onAddItem={() => handleAddItem('commercialAcumen')}
               bgColor="rgba(139, 69, 19, 0.2)"
             />

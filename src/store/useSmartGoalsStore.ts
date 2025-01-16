@@ -37,7 +37,25 @@ interface SmartGoalsStore {
 export const useSmartGoalsStore = create<SmartGoalsStore>()(
   persist(
     (set) => ({
-      goals: [],
+      goals: [{
+        id: 'example-goal',
+        name: 'Example Goal',
+        areaOfFocus: 'Here is an example SMART goal',
+        currentState: 'Where I am currently',
+        futureState: 'Where I want to be',
+        dueDate: '2025-04-12',
+        actions: [{
+          id: 'example-action-1',
+          text: 'Create a SMART goal',
+          isCompleted: false
+        }],
+        milestones: [{
+          id: 'example-milestone-1',
+          text: 'Check off this goal',
+          isCompleted: false
+        }],
+        createdAt: new Date().toISOString()
+      }],
       addGoal: (goal) =>
         set((state) => ({
           goals: [...state.goals, goal],

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { SmartGoal } from '../../store/useSmartGoalsStore';
 
@@ -16,14 +16,38 @@ export const SmartGoalModal: React.FC<SmartGoalModalProps> = ({
   initialData,
 }) => {
   const [formData, setFormData] = useState<Omit<SmartGoal, 'id' | 'createdAt'>>({
-    name: initialData?.name || '',
-    areaOfFocus: initialData?.areaOfFocus || '',
-    currentState: initialData?.currentState || '',
-    futureState: initialData?.futureState || '',
-    dueDate: initialData?.dueDate || '',
-    actions: initialData?.actions || [],
-    milestones: initialData?.milestones || [],
+    name: '',
+    areaOfFocus: '',
+    currentState: '',
+    futureState: '',
+    dueDate: '',
+    actions: [],
+    milestones: [],
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name,
+        areaOfFocus: initialData.areaOfFocus,
+        currentState: initialData.currentState,
+        futureState: initialData.futureState,
+        dueDate: initialData.dueDate,
+        actions: initialData.actions,
+        milestones: initialData.milestones,
+      });
+    } else {
+      setFormData({
+        name: '',
+        areaOfFocus: '',
+        currentState: '',
+        futureState: '',
+        dueDate: '',
+        actions: [],
+        milestones: [],
+      });
+    }
+  }, [initialData]);
 
   const [newAction, setNewAction] = useState('');
   const [newMilestone, setNewMilestone] = useState('');

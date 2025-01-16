@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { TrafficLightItem } from './TrafficLightItem';
 import { useTrafficLightStore } from '../../store/useTrafficLightStore';
+import { trafficLightRequirements } from './trafficLightRequirements';
 
 interface CategorySectionProps {
   title: string;
@@ -21,12 +22,11 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   bgColor,
 }) => {
   const { initializeCategory, getItemsForRole } = useTrafficLightStore();
+  const items = getItemsForRole(role, category);
 
-  React.useEffect(() => {
+  useEffect(() => {
     initializeCategory(role, category, defaultItems);
   }, [role, category, defaultItems, initializeCategory]);
-
-  const items = getItemsForRole(role, category);
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
