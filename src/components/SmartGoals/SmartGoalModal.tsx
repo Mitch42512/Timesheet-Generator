@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Info } from 'lucide-react';
 import { SmartGoal } from '../../store/useSmartGoalsStore';
 
 interface SmartGoalModalProps {
@@ -8,6 +8,31 @@ interface SmartGoalModalProps {
   onSubmit: (goal: Omit<SmartGoal, 'id' | 'createdAt'>) => void;
   initialData?: SmartGoal;
 }
+
+// Add tooltip text definitions
+const tooltips = {
+  name: "Insert a title for your goal",
+  areaOfFocus: "Main target of your goal",
+  currentState: "Where are you currently in your journey",
+  futureState: "Where do you want to end up",
+  dueDate: "When is this goal end",
+  actions: "What do you have to do for this goal",
+  milestones: "Checkpoints in your goal"
+};
+
+// Add a reusable label component with tooltip
+const LabelWithTooltip: React.FC<{ text: string; tooltip: string }> = ({ text, tooltip }) => (
+  <div className="flex items-center gap-1">
+    <span className="text-sm font-medium text-gray-700">{text}</span>
+    <div className="relative group">
+      <Info className="w-3 h-3 text-gray-400 cursor-help" />
+      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs italic rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-[60]">
+        {tooltip}
+        <div className="absolute top-1/2 right-full -translate-y-1/2 border-3 border-transparent border-r-gray-900" />
+      </div>
+    </div>
+  </div>
+);
 
 export const SmartGoalModal: React.FC<SmartGoalModalProps> = ({
   isOpen,
@@ -118,74 +143,62 @@ export const SmartGoalModal: React.FC<SmartGoalModalProps> = ({
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Goal Name
-              </label>
+              <LabelWithTooltip text="Goal Name" tooltip={tooltips.name} />
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="mt-1 w-full px-3 py-2 border rounded-lg"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Area of Focus
-              </label>
+              <LabelWithTooltip text="Area of Focus" tooltip={tooltips.areaOfFocus} />
               <input
                 type="text"
                 value={formData.areaOfFocus}
                 onChange={(e) => setFormData({ ...formData, areaOfFocus: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="mt-1 w-full px-3 py-2 border rounded-lg"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Current State
-              </label>
+              <LabelWithTooltip text="Current State" tooltip={tooltips.currentState} />
               <textarea
                 value={formData.currentState}
                 onChange={(e) => setFormData({ ...formData, currentState: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="mt-1 w-full px-3 py-2 border rounded-lg"
                 rows={3}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Future State
-              </label>
+              <LabelWithTooltip text="Future State" tooltip={tooltips.futureState} />
               <textarea
                 value={formData.futureState}
                 onChange={(e) => setFormData({ ...formData, futureState: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="mt-1 w-full px-3 py-2 border rounded-lg"
                 rows={3}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Due Date
-              </label>
+              <LabelWithTooltip text="Due Date" tooltip={tooltips.dueDate} />
               <input
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="mt-1 w-full px-3 py-2 border rounded-lg"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Actions
-              </label>
+              <LabelWithTooltip text="Actions" tooltip={tooltips.actions} />
               <div className="flex gap-2 mb-2">
                 <input
                   type="text"
@@ -223,9 +236,7 @@ export const SmartGoalModal: React.FC<SmartGoalModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Milestones
-              </label>
+              <LabelWithTooltip text="Milestones" tooltip={tooltips.milestones} />
               <div className="flex gap-2 mb-2">
                 <input
                   type="text"
@@ -262,7 +273,7 @@ export const SmartGoalModal: React.FC<SmartGoalModalProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-center gap-4">
               <button
                 type="button"
                 onClick={onClose}

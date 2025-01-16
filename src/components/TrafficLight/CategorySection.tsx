@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { TrafficLightItem } from './TrafficLightItem';
 import { useTrafficLightStore } from '../../store/useTrafficLightStore';
-import { trafficLightRequirements } from './trafficLightRequirements';
 
 interface CategorySectionProps {
   title: string;
@@ -24,14 +23,35 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   const { initializeCategory, getItemsForRole } = useTrafficLightStore();
   const items = getItemsForRole(role, category);
 
+  const calculateCategoryProgress = () => {
+    if (items.length === 0) return 0;
+    
+    const totalPossibleScore = items.length * 5; // Maximum score is 5 for each item
+    const currentScore = items.reduce((sum, item) => sum + (item.rating || 0), 0);
+    
+    return Math.round((currentScore / totalPossibleScore) * 100);
+  };
+
   useEffect(() => {
+    console.log('Initializing category:', {
+      role,
+      category,
+      defaultItems,
+    });
     initializeCategory(role, category, defaultItems);
   }, [role, category, defaultItems, initializeCategory]);
+
+  console.log('Current items:', items);
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <div className="p-4" style={{ backgroundColor: bgColor }}>
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          <span className="text-sm font-medium">
+            {calculateCategoryProgress()}% Complete
+          </span>
+        </div>
       </div>
       
       <div className="p-4">

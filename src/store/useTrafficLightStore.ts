@@ -6,6 +6,7 @@ interface TrafficLightItem {
   text: string;
   rating: number | null;
   notes: string;
+  itemType?: 'daily' | 'training' | 'wider';
 }
 
 interface RoleData {
@@ -32,8 +33,8 @@ export const useTrafficLightStore = create<TrafficLightStore>()(
       selectedRole: 'graduate',
       
       initializeCategory: (role, category, defaultItems) => {
-        const existingItems = get().roleData[role]?.items[category] || [];
-        if (existingItems.length === 0) {
+        const existingItems = get().roleData[role]?.items[category];
+        if (!existingItems) {
           set((state) => ({
             roleData: {
               ...state.roleData,
@@ -46,6 +47,7 @@ export const useTrafficLightStore = create<TrafficLightStore>()(
                     text,
                     rating: null,
                     notes: '',
+                    itemType: undefined,
                   })),
                 },
               },
@@ -108,7 +110,7 @@ export const useTrafficLightStore = create<TrafficLightStore>()(
     }),
     {
       name: 'traffic-light-storage',
-      version: 1,
+      version: 2,
     }
   )
 );

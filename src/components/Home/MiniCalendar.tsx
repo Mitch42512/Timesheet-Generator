@@ -61,7 +61,7 @@ export const MiniCalendar: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-7 gap-1">
-        {monthDays.map((day, index) => (
+        {monthDays.map((day) => (
           <div
             key={day.toString()}
             className={`

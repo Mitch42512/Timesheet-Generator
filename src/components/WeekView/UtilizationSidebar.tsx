@@ -4,6 +4,8 @@ import { useTimesheetStore } from '../../store/useTimesheetStore';
 import { useWeekStore } from '../../store/useWeekStore';
 import { format } from 'date-fns';
 import { Trash2, Check } from 'lucide-react';
+import { useWeekNotesStore } from '../../store/useWeekNotesStore.ts';
+import { WeekNotesStore } from '../../store/useWeekNotesStore.ts';
 
 interface UtilizationSidebarProps {
   weekId: string;
@@ -31,6 +33,11 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
   const chargeableAccounts = uniqueAccounts.filter(account => account.isChargeable && account.group !== 'extra');
   const nonChargeableAccounts = uniqueAccounts.filter(account => !account.isChargeable && account.group !== 'extra');
   const extraAccounts = uniqueAccounts.filter(account => account.group === 'extra');
+
+  const { notes, setNotes } = useWeekNotesStore((state: WeekNotesStore) => ({
+    notes: state.getNotes(weekId),
+    setNotes: state.setNotes,
+  }));
 
   React.useEffect(() => {
     if (hasEntries && weekStatus === 'not-started') {
@@ -81,15 +88,21 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
       <div className={`${bgColor} p-2`}>
         <div className="flex items-center">
           <div className="w-[120px] font-semibold">{title}</div>
-          <div className="flex-1 grid grid-cols-8 gap-2 text-center text-sm">
-            <div>M</div>
-            <div>T</div>
-            <div>W</div>
-            <div>T</div>
-            <div>F</div>
-            <div>S</div>
-            <div>S</div>
-            <div>Hours</div>
+          <div className="flex-1 pl-[70px]">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="w-8 text-center">M</th>
+                  <th className="w-8 text-center">T</th>
+                  <th className="w-8 text-center">W</th>
+                  <th className="w-8 text-center">T</th>
+                  <th className="w-8 text-center">F</th>
+                  <th className="w-8 text-center">S</th>
+                  <th className="w-8 text-center">S</th>
+                  <th className="w-12 text-center">Hours</th>
+                </tr>
+              </thead>
+            </table>
           </div>
         </div>
       </div>
@@ -152,6 +165,15 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
             <Check className="w-4 h-4" />
             {weekStatus === 'completed' ? 'Submitted' : 'Submit Week'}
           </button>
+        </div>
+
+        <div className="mt-4">
+          <textarea
+            value={notes || ''}
+            onChange={(e) => setNotes(weekId, e.target.value)}
+            placeholder="Add week notes here..."
+            className="w-full px-3 py-2 border rounded-lg resize-none placeholder:italic text-sm min-h-[100px]"
+          />
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ export const trafficLightRequirements: Record<string, Array<{ category: string, 
     {
       category: 'clientRelations',
       items: [
-        'Build relationships with immediate team members test',
+        'Build relationships with immediate team members',
         'Communicate effectively in meetings',
         'Understand client needs and expectations'
       ]

@@ -8,6 +8,9 @@ import { trafficLightRequirements } from './trafficLightRequirements';
 export const TrafficLightPage: React.FC = () => {
   const { addItem, selectedRole, setSelectedRole } = useTrafficLightStore();
 
+  console.log('Selected Role:', selectedRole);
+  console.log('Requirements:', trafficLightRequirements[selectedRole]);
+
   const roles = [
     { id: 'graduate', label: 'Graduate' },
     { id: 'client-executive', label: 'Client Executive' },
@@ -25,6 +28,11 @@ export const TrafficLightPage: React.FC = () => {
       notes: '',
     });
   };
+
+  if (!trafficLightRequirements[selectedRole]) {
+    console.error('No requirements found for role:', selectedRole);
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -49,62 +57,19 @@ export const TrafficLightPage: React.FC = () => {
       </div>
       
       <div className="flex gap-6">
-        {/* Left Container - 70% */}
         <div className="flex-[0.7]">
           <div className="space-y-8">
-            <CategorySection
-              title="Managing Clients and Relationships"
-              category="clientRelations"
-              role={selectedRole}
-              defaultItems={trafficLightRequirements[selectedRole][0].items}
-              onAddItem={() => handleAddItem('clientRelations')}
-              bgColor="rgba(0, 0, 255, 0.2)"
-            />
-
-            <CategorySection
-              title="Winning and Selling Work"
-              category="sellingWork"
-              role={selectedRole}
-              defaultItems={trafficLightRequirements[selectedRole][1].items}
-              onAddItem={() => handleAddItem('sellingWork')}
-              bgColor="rgba(255, 215, 0, 0.2)"
-            />
-
-            <CategorySection
-              title="Project Management"
-              category="projectManagement"
-              role={selectedRole}
-              defaultItems={trafficLightRequirements[selectedRole][2].items}
-              onAddItem={() => handleAddItem('projectManagement')}
-              bgColor="rgba(128, 0, 128, 0.2)"
-            />
-
-            <CategorySection
-              title="Delivery and Execution"
-              category="delivery"
-              role={selectedRole}
-              defaultItems={trafficLightRequirements[selectedRole][3].items}
-              onAddItem={() => handleAddItem('delivery')}
-              bgColor="rgba(0, 128, 0, 0.2)"
-            />
-
-            <CategorySection
-              title="People Management"
-              category="peopleManagement"
-              role={selectedRole}
-              defaultItems={trafficLightRequirements[selectedRole][4].items}
-              onAddItem={() => handleAddItem('peopleManagement')}
-              bgColor="rgba(255, 192, 203, 0.4)"
-            />
-
-            <CategorySection
-              title="Commercial Acumen"
-              category="commercialAcumen"
-              role={selectedRole}
-              defaultItems={trafficLightRequirements[selectedRole][5].items}
-              onAddItem={() => handleAddItem('commercialAcumen')}
-              bgColor="rgba(139, 69, 19, 0.2)"
-            />
+            {trafficLightRequirements[selectedRole].map((section) => (
+              <CategorySection
+                key={section.category}
+                title={getCategoryTitle(section.category)}
+                category={section.category}
+                role={selectedRole}
+                defaultItems={section.items}
+                onAddItem={() => handleAddItem(section.category)}
+                bgColor={getCategoryColor(section.category)}
+              />
+            ))}
           </div>
         </div>
 
@@ -115,4 +80,28 @@ export const TrafficLightPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const getCategoryTitle = (category: string) => {
+  const titles: Record<string, string> = {
+    clientRelations: 'Managing Clients and Relationships',
+    sellingWork: 'Winning and Selling Work',
+    projectManagement: 'Project Management',
+    delivery: 'Delivery and Execution',
+    peopleManagement: 'People Management',
+    commercialAcumen: 'Commercial Acumen',
+  };
+  return titles[category] || category;
+};
+
+const getCategoryColor = (category: string) => {
+  const colors: Record<string, string> = {
+    clientRelations: 'rgba(0, 0, 255, 0.2)',
+    sellingWork: 'rgba(255, 215, 0, 0.2)',
+    projectManagement: 'rgba(128, 0, 128, 0.2)',
+    delivery: 'rgba(0, 128, 0, 0.2)',
+    peopleManagement: 'rgba(255, 192, 203, 0.4)',
+    commercialAcumen: 'rgba(139, 69, 19, 0.2)',
+  };
+  return colors[category] || 'rgba(0, 0, 0, 0.1)';
 };

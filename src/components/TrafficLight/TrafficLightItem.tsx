@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTrafficLightStore } from '../../store/useTrafficLightStore';
-import { Frown, MehIcon, Smile, SmileIcon, Trash2 } from 'lucide-react';
+import { Frown, MehIcon, Smile, SmileIcon, Trash2, ChevronDown } from 'lucide-react';
 
 interface TrafficLightItemProps {
   role: string;
@@ -10,8 +10,15 @@ interface TrafficLightItemProps {
     text: string;
     rating: number | null;
     notes: string;
+    itemType?: 'daily' | 'training' | 'wider';
   };
 }
+
+const itemTypes = [
+  { id: 'daily', label: 'Daily Project Life', color: '#006400' }, // Dark Green
+  { id: 'training', label: 'Kantar Training', color: '#8B0000' }, // Dark Red
+  { id: 'wider', label: 'Wider Kantar Assimilation', color: '#00008B' }, // Dark Blue
+];
 
 export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
   role,
@@ -21,6 +28,7 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
   const { updateItem, removeItem } = useTrafficLightStore();
   const [isEditing, setIsEditing] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
 
   const ratings = [
     { value: 1, icon: Frown, color: 'text-red-500' },
@@ -36,8 +44,22 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
     updateItem(role, category, item.id, { rating: newRating });
   };
 
+  const getBorderColor = () => {
+    switch (item.itemType) {
+      case 'daily': return '#006400';
+      case 'training': return '#8B0000';
+      case 'wider': return '#00008B';
+      default: return 'transparent';
+    }
+  };
+
   return (
-    <div className="border rounded-lg p-4 space-y-3">
+    <div 
+      className="border rounded-lg p-4 space-y-3"
+      style={{ 
+        borderLeft: `4px solid ${getBorderColor()}`,
+      }}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           {isEditing ? (
@@ -62,6 +84,36 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+              className="px-2 py-1 text-sm border rounded hover:bg-gray-50 flex items-center gap-1"
+            >
+              <span style={{ color: getBorderColor() }}>
+                {item.itemType ? itemTypes.find(t => t.id === item.itemType)?.label : 'Select Type'}
+              </span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+
+            {showTypeDropdown && (
+              <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg z-10">
+                {itemTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
+                    onClick={() => {
+                      updateItem(role, category, item.id, { itemType: type.id as 'daily' | 'training' | 'wider' });
+                      setShowTypeDropdown(false);
+                    }}
+                    style={{ color: type.color }}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {ratings.map(({ value, icon: Icon, color }) => (
             <button
               key={value}
