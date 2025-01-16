@@ -16,8 +16,8 @@ export const TrafficLightPage: React.FC = () => {
     { id: 'client-executive', label: 'Client Executive' },
     { id: 'snr-client-executive', label: 'Snr Client Executive' },
     { id: 'client-manager', label: 'Client Manager' },
+    { id: 'senior-client-manager', label: 'Senior Client Manager' },
     { id: 'associate-director', label: 'Associate Director' },
-    { id: 'director', label: 'Director' },
   ];
 
   const handleAddItem = (category: string) => {

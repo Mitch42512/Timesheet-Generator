@@ -12,53 +12,46 @@ export const roleRequirements: RoleRequirements = {
     {
       title: 'Managing Clients and Relationships',
       items: [
-        'Begins to build rapport with clients. Handles basic client enquiries.',
-        'Understands fundamentals of research; conducts background research from secondary sources; collaborates with peers to collate information required for client.',
-        'Implements account planning actions and administers client feedback as directed.'
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
+        'Insert Graduate Roles'
       ]
     },
     {
       title: 'Winning and Selling Work',
       items: [
-        'Aware of and understands our offer'
+        'Insert Graduate Roles',
       ]
     },
     {
       title: 'Project Management',
       items: [
-        'Manages a range of tasks throughout the projects workflow following Quality Standards. Understands the principles of daily fieldwork monitoring, sample and quota management, link and hole count checking. Takes accountability where relevant.',
-        'Can accurately estimate the LOI of a survey script. Takes responsibility for signing off basic scripts as being 100% accurate.',
-        'Monitors timelines throughout the life of the project, communicating progress with clients and the internal team.',
-        'Establishes partnerships with all key internal stakeholders (including Onshore and Offshore Operations) through building credibility and rapport and instilling a one team mindset.',
-        'Understands and knows how to implement SDM ways of working and best practice across relevant projects with support where required',
-        'Develops experience in managing projects from start to finish whilst actively looking for efficiency and effectiveness gains.'
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
       ]
     },
     {
       title: 'Delivery and Execution',
       items: [
-        'Understands and knows the basics on how to implement Kantar Goldstar framework.',
-        'Ensures adherence to SDM RACI where relevant, adopts SDM must use documents, following first time right behaviour',
-        'Maintains accurate data/table specs on all projects. Takes responsibility for perfect quality of data tables and accurate data extraction e.g., from tables into reports.',
-        'Utilities Q/RFS effectively and correctly to run analysis.',
-        'Hones PPT and Slickslides skills to uphold Kantar branding standards in all deliverables.',
-        'Collates data to contribute clearly, accurately and effectively to answering the clients business issues. Develops skills in writing basic commentary in reports.',
-        'Assists in preparing presentations or workshops and attends if appropriate.'
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
       ]
     },
     {
       title: 'People Management',
       items: [
-        'Self: Manages own time effectively. Seeks opportunities for self learning. Takes advantage of training opportunities on offer.',
-        'Others: Provides on the job feedback to team members and line manager to enable others to flourish. Participates in office related activities to maintain a positive work culture and encourages others to do the same.'
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
       ]
     },
     {
       title: 'Commercial Acumen',
       items: [
-        '100% compliance of weekly accurate timesheet submissions.',
-        'Understands the impact of their time spent on job profitability and utilisation.',
-        'Can complete basic Ad Hoc cost requests and understands the impact of cost on profitability.'
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
+        'Insert Graduate Roles',
       ]
     }
   ],
@@ -80,7 +73,8 @@ export const roleRequirements: RoleRequirements = {
     {
       title: 'Project Management',
       items: [
-        'Manages a range of tasks throughout the projects workflow following Quality Standards. Understands the principles of daily fieldwork monitoring, sample and quota management, link and hole count checking. Takes accountability where relevant.',
+        'Manages a range of tasks throughout the projects workflow following Quality Standards.',
+        'Understands the principles of daily fieldwork monitoring, sample and quota management, link and whole count checking. Takes accountability where relevant.',
         'Can accurately estimate the LOI of a survey script. Takes responsibility for signing off basic scripts as being 100% accurate.',
         'Monitors timelines throughout the life of the project, communicating progress with clients and the internal team.',
         'Establishes partnerships with all key internal stakeholders (including Onshore and Offshore Operations) through building credibility and rapport and instilling a one team mindset.',
@@ -232,6 +226,60 @@ export const roleRequirements: RoleRequirements = {
       ]
     }
   ],
+  'senior-client-manager': [
+    {
+      title: 'Managing Clients and Relationships',
+      items: [
+        'Actively manages the day to day relationship and for manageing client expectations and implications regarding hiigh complexiity project design, costs and timings.',
+        'Responsiible for developing and buiilding strrong relationships in client organisation (Including senior stakeholders and agency partners)',
+        'Is able to identify new business opportunities'
+      ]
+    },
+    {
+      title: 'Winning and Selling Work',
+      items: [
+        'Plays an active role in pitching the proposal and helps develop creative approach to proposal delivery'
+      ]
+    },
+    {
+      title: 'Project Management',
+      items: [
+        'Accountable for monitoring team against project milestones. Can identify medium/high complexity risks and solutions and can solve independently keeping relevant parties informed, escalates to AD level and above if required.',
+        'Develops complex questionnaires and ensures questions arre aligned with client objections',
+        'Challenges cliient thhinking on questionnaire design',
+        'Can guide others on input sheets and the use of QLIB',
+        'Evident as a go-to expert for junior staff on projects processess. Identifies current training gaps in team and seeks out ways to address these',
+        'Accountable for managing project capacity and effective resourcing',
+        'Champions SDM ways of working and coaches on best practcie across relevant projects',
+        'Encourages others to seek out and identify automation opportunities'
+      ]
+    },
+    {
+      title: 'Delivery and Execution',
+      items: [
+        'Accountable for the implementation fo the Goldstar framework on all their accounts',
+        'Can effectively plan and coach others on the anaysis and reporting around clients real business issues',
+        'Proven ability at insiigating and leading the data analysis to answer theh clients business questions. Seeks new ways to analyse the data to answer clients questions',
+        'Able to present the entirety of the presentation of research results for own projects. Can effectively facilitate a workshop'
+      ]
+    },
+    {
+      title: 'People Management',
+      items: [
+        'Self: Is aware of own goals and looks for opportunities locally too achieve these.Takes advantage of training opportunities on offer and shares learning with the wider teams. Remains positive and responds to pressure in a calm considered manner when approached',
+        'Others: Proven ability at coaching and mentoring junior staff. Is beginning to learn basics of people management techniques to get the best out of team members. Effectively supports any business changes to team in a positive and collaborative manner. Driver an open, regular, honest feedback culture, ensuriing collaborative prooblem solving and iimplementation of learning'
+      ]
+    },
+    {
+      title: 'Commercial Acumen',
+      items: [
+        'Intermediate negootion skills (negotiates with clients on costs/tiimeliines and scope)',
+        'Responsible for delivering on budgeted NS and profit; Identifies recurring cost overruns/other risk factors on projects.',
+        'Contributes to the commercial success of a project through actively putting a plan in place to address job profitability challenges',
+        '100% compliance of weekly accurate timesheet submissions'
+      ]
+    }
+  ],
   'associate-director': [
     {
       title: 'Managing Clients and Relationships',
@@ -285,63 +333,6 @@ export const roleRequirements: RoleRequirements = {
         'Manage profit through effective resource planning and sharing.',
         'Accountable for providing accurate and timely financial data (pipeline, acceptances, completions, phasing).',
         'Coaches staff around financial acumen & issues. Proven ability at resolving financial issues timeously (negotiating fee increases, scope creep, and securing overdue payments).',
-        'Ensures self and line reports have 100% compliance of weekly accurate timesheet submissions.'
-      ]
-    }
-  ],
-  'director': [
-    {
-      title: 'Managing Clients and Relationships',
-      items: [
-        'Strategic client portfolio leadership',
-        'Executive relationship management',
-        'Market positioning and thought leadership',
-        'Client strategy development'
-      ]
-    },
-    {
-      title: 'Winning and Selling Work',
-      items: [
-        'Business development strategy',
-        'Market expansion leadership',
-        'Strategic partnership development',
-        'Innovation agenda setting'
-      ]
-    },
-    {
-      title: 'Project Management',
-      items: [
-        'Enterprise initiative direction',
-        'Strategic program oversight',
-        'Organizational change leadership',
-        'Resource optimization'
-      ]
-    },
-    {
-      title: 'Delivery and Execution',
-      items: [
-        'Quality standards definition',
-        'Business transformation leadership',
-        'Service evolution direction',
-        'Strategic execution oversight'
-      ]
-    },
-    {
-      title: 'People Management',
-      items: [
-        'Organizational culture shaping',
-        'Talent strategy leadership',
-        'Succession planning',
-        'Leadership development'
-      ]
-    },
-    {
-      title: 'Commercial Acumen',
-      items: [
-        'Business strategy direction',
-        'Market expansion leadership',
-        'Investment strategy oversight',
-        'Financial direction setting'
       ]
     }
   ]

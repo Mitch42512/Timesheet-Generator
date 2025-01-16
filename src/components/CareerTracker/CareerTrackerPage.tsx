@@ -9,21 +9,22 @@ interface CareerTrackerPageProps {
 }
 
 export const CareerTrackerPage: React.FC<CareerTrackerPageProps> = ({ onTabChange }) => {
-  const [selectedRole, setSelectedRole] = useState('graduate');
+  const { position } = useUserStore();
+  const [selectedRole, setSelectedRole] = useState(position);
+
+  // Update selectedRole when position changes
+  useEffect(() => {
+    setSelectedRole(position);
+  }, [position]);
 
   const handleRoleChange = (role: string) => {
     setSelectedRole(role);
-    // Convert role ID to display title
-    const roleTitle = role.split('-').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
   };
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Career Tracker</h1>
       <div className="flex gap-6">
-        {/* Left Container - 65% */}
         <div className="flex-[0.65]">
           <div className="bg-white rounded-lg shadow p-6">
             <RoleSelector selectedRole={selectedRole} onRoleChange={handleRoleChange} />
@@ -31,7 +32,6 @@ export const CareerTrackerPage: React.FC<CareerTrackerPageProps> = ({ onTabChang
           </div>
         </div>
 
-        {/* Right Container - 35% */}
         <div className="flex-[0.35]">
           <ProfileOverview onTabChange={onTabChange} />
         </div>
