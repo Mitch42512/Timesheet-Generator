@@ -53,37 +53,44 @@ export const trafficLightRequirements: Record<string, Array<{ category: string, 
     {
       category: 'clientRelations',
       items: [
-        'Build strong relationships with client day-to-day contacts',
-        'Handle client communications professionally',
-        'Proactively identify client needs',
-        'Participate actively in client meetings'
+        'Attends client WIPs for key accounts',
+        'Runs internal team WIPs',
+        'Supports 3+ account planning actions',
+        'Key point oof contact for daily client queries on key accounts',
+        'Uses secondary sources of data on all deliverables'
       ]
     },
     {
       category: 'sellingWork',
       items: [
-        'Contribute to proposal writing',
-        'Identify upselling opportunities',
-        'Support pitch presentations',
-        'Understand client budget constraints'
+        'Successfully completes APAC Level 2 Solutions academy'
       ]
     },
     {
       category: 'projectManagement',
       items: [
-        'Manage small projects independently',
-        'Track project progress effectively',
-        'Identify and escalate risks appropriately',
-        'Coordinate with internal teams'
+        'Clearly understand rules and responsibilties on project; flags issues at first kick off meeting',
+        'uses Kantar project to manage internal timelines',
+        'Adheres to SDM process and principals completes "must use documents" on all relevant projects from with support from CM+',
+        'Drafts 5+ simple questionnaires in QLIB using Kantar standard templates',
+        'implements efficiecyfiind/automatin on 1+ account',
+        'sets up and run 4+ KMP studies with support from CM+',
+        'Attends KP induction sessions',
+        'Completes Dimensions traiining and uses to moniitor fieldwork',
+        'Completes Kantar APAC Academy level 1 Research fundamentals'
       ]
     },
     {
       category: 'delivery',
       items: [
-        'Produce high-quality deliverables',
-        'Apply advanced technical skills',
-        'Review junior team members work',
-        'Implement best practices'
+        'Contributes to 6+ Analysiis Plan sessions (Milestone 1) on key accounts',
+        'Draft 5+ siimple DP specs for sign off by CM+',
+        'Q or RFS Traiining; uses either on projects',
+        'Attends 3+ client presentations',
+        'basic commentary in 3+ reports',
+        'Uses Slickslides on all client work',
+        'Succesfully comples APAC Gold Star Foundatiosn training with accreditation',
+        'Completes SlickSlides training'
       ]
     },
     {
