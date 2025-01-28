@@ -41,7 +41,7 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
   const handleRatingClick = (value: number) => {
     // If the same rating is clicked again, set to null (unselected)
     const newRating = item.rating === value ? null : value;
-    updateItem(role, category, item.id, { rating: newRating });
+    updateItem(item.id, { rating: newRating });
   };
 
   const getBorderColor = () => {
@@ -67,7 +67,7 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
               type="text"
               value={item.text}
               onChange={(e) =>
-                updateItem(role, category, item.id, { text: e.target.value })
+                updateItem(item.id, { text: e.target.value })
               }
               className="w-full px-2 py-1 border rounded"
               onBlur={() => setIsEditing(false)}
@@ -102,7 +102,7 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
                     key={type.id}
                     className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
                     onClick={() => {
-                      updateItem(role, category, item.id, { itemType: type.id as 'daily' | 'training' | 'wider' });
+                      updateItem(item.id, { itemType: type.id as 'daily' | 'training' | 'wider' });
                       setShowTypeDropdown(false);
                     }}
                     style={{ color: type.color }}
@@ -127,7 +127,7 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
           ))}
           
           <button
-            onClick={() => removeItem(role, category, item.id)}
+            onClick={() => removeItem(item.id)}
             className="p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100"
           >
             <Trash2 className="w-5 h-5" />
@@ -147,7 +147,7 @@ export const TrafficLightItem: React.FC<TrafficLightItemProps> = ({
           <textarea
             value={item.notes}
             onChange={(e) =>
-              updateItem(role, category, item.id, { notes: e.target.value })
+              updateItem(item.id, { notes: e.target.value })
             }
             placeholder="Add notes here..."
             className="mt-2 w-full px-3 py-2 border rounded-lg resize-none"

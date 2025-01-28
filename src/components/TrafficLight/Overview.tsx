@@ -1,12 +1,13 @@
-import React from 'react';
-import { useTrafficLightStore } from '../../store/useTrafficLightStore';
+import React, { useEffect, useState } from 'react';
+import { useTrafficLightStore, useTrafficLightItems } from '../../store/useTrafficLightStore';
 
 interface OverviewProps {
   role: string;
 }
 
 export const Overview: React.FC<OverviewProps> = ({ role }) => {
-  const { getItemsForRole } = useTrafficLightStore();
+  const [categoryProgress, setCategoryProgress] = useState<Record<string, number>>({});
+  const [overallProgress, setOverallProgress] = useState(0);
 
   const categories = [
     { id: 'clientRelations', label: 'Client Relations', color: 'bg-blue-100' },
@@ -17,28 +18,36 @@ export const Overview: React.FC<OverviewProps> = ({ role }) => {
     { id: 'commercialAcumen', label: 'Commercial Acumen', color: 'bg-orange-100' },
   ];
 
-  const calculateCategoryProgress = (category: string) => {
-    const items = getItemsForRole(role, category);
-    if (items.length === 0) return 0;
+  // Use live query for each category
+  const categoryItems = categories.map(category => ({
+    ...category,
+    items: useTrafficLightItems(role, category.id)
+  }));
 
-    const totalPossibleScore = items.length * 5; // Maximum score is 5 for each item
-    const currentScore = items.reduce((sum, item) => sum + (item.rating || 0), 0);
-    
-    return Math.round((currentScore / totalPossibleScore) * 100);
-  };
-
-  const calculateOverallProgress = () => {
+  useEffect(() => {
+    // Calculate progress for each category
+    const progress: Record<string, number> = {};
     let totalScore = 0;
     let totalPossible = 0;
 
-    categories.forEach(category => {
-      const items = getItemsForRole(role, category.id);
-      totalPossible += items.length * 5;
-      totalScore += items.reduce((sum, item) => sum + (item.rating || 0), 0);
+    categoryItems.forEach(({ id, items }) => {
+      if (items.length === 0) {
+        progress[id] = 0;
+        return;
+      }
+
+      const categoryTotalPossible = items.length * 5;
+      const categoryScore = items.reduce((sum, item) => sum + (item.rating || 0), 0);
+      
+      progress[id] = Math.round((categoryScore / categoryTotalPossible) * 100);
+      
+      totalScore += categoryScore;
+      totalPossible += categoryTotalPossible;
     });
 
-    return totalPossible === 0 ? 0 : Math.round((totalScore / totalPossible) * 100);
-  };
+    setCategoryProgress(progress);
+    setOverallProgress(totalPossible === 0 ? 0 : Math.round((totalScore / totalPossible) * 100));
+  }, [categoryItems]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -46,7 +55,7 @@ export const Overview: React.FC<OverviewProps> = ({ role }) => {
         <h2 className="text-lg font-semibold">Progress Overview</h2>
         <div className="mt-2">
           <div className="text-3xl font-bold text-blue-600">
-            {calculateOverallProgress()}%
+            {overallProgress}%
           </div>
           <div className="text-sm text-gray-500">Overall Progress</div>
         </div>
@@ -59,13 +68,13 @@ export const Overview: React.FC<OverviewProps> = ({ role }) => {
             <div key={category.id}>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">{category.label}</span>
-                <span className="font-medium">{calculateCategoryProgress(category.id)}%</span>
+                <span className="font-medium">{categoryProgress[category.id] || 0}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className={`h-2 rounded-full ${category.color}`}
                   style={{
-                    width: `${calculateCategoryProgress(category.id)}%`,
+                    width: `${categoryProgress[category.id] || 0}%`,
                   }}
                 />
               </div>

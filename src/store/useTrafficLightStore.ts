@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, TrafficLightItem } from '../db/db';
 
 interface TrafficLightItem {
   id: string;
@@ -18,99 +19,73 @@ interface RoleData {
 interface TrafficLightStore {
   roleData: RoleData;
   selectedRole: string;
-  initializeCategory: (role: string, category: string, defaultItems: string[]) => void;
-  addItem: (role: string, category: string, item: TrafficLightItem) => void;
-  updateItem: (role: string, category: string, id: string, updates: Partial<TrafficLightItem>) => void;
-  removeItem: (role: string, category: string, id: string) => void;
+  initializeCategory: (role: string, category: string, defaultItems: string[]) => Promise<void>;
+  addItem: (role: string, category: string, item: Omit<TrafficLightItem, 'role' | 'category'>) => Promise<void>;
+  updateItem: (id: string, updates: Partial<TrafficLightItem>) => Promise<void>;
+  removeItem: (id: string) => Promise<void>;
   setSelectedRole: (role: string) => void;
-  getItemsForRole: (role: string, category: string) => TrafficLightItem[];
+  getItemsForRole: (role: string, category: string) => Promise<TrafficLightItem[]>;
 }
 
-export const useTrafficLightStore = create<TrafficLightStore>()(
-  persist(
-    (set, get) => ({
-      roleData: {},
-      selectedRole: 'graduate',
-      
-      initializeCategory: (role, category, defaultItems) => {
-        const existingItems = get().roleData[role]?.items[category];
-        if (!existingItems) {
-          set((state) => ({
-            roleData: {
-              ...state.roleData,
-              [role]: {
-                ...state.roleData[role],
-                items: {
-                  ...(state.roleData[role]?.items || {}),
-                  [category]: defaultItems.map((text) => ({
-                    id: crypto.randomUUID(),
-                    text,
-                    rating: null,
-                    notes: '',
-                    itemType: undefined,
-                  })),
-                },
-              },
-            },
-          }));
-        }
-      },
+export const useTrafficLightStore = create<TrafficLightStore>((set, get) => ({
+  roleData: {},
+  selectedRole: 'graduate',
+  
+  setSelectedRole: (role) => set({ selectedRole: role }),
 
-      addItem: (role, category, item) =>
-        set((state) => ({
-          roleData: {
-            ...state.roleData,
-            [role]: {
-              ...state.roleData[role],
-              items: {
-                ...(state.roleData[role]?.items || {}),
-                [category]: [...(state.roleData[role]?.items[category] || []), item],
-              },
-            },
-          },
-        })),
+  initializeCategory: async (role, category, defaultItems) => {
+    const existingItems = await db.trafficLightItems
+      .where(['role', 'category'])
+      .equals([role, category])
+      .toArray();
 
-      updateItem: (role, category, id, updates) =>
-        set((state) => ({
-          roleData: {
-            ...state.roleData,
-            [role]: {
-              ...state.roleData[role],
-              items: {
-                ...(state.roleData[role]?.items || {}),
-                [category]: (state.roleData[role]?.items[category] || []).map((item) =>
-                  item.id === id ? { ...item, ...updates } : item
-                ),
-              },
-            },
-          },
-        })),
+    if (existingItems.length === 0) {
+      const items = defaultItems.map((text) => ({
+        id: crypto.randomUUID(),
+        role,
+        category,
+        text,
+        rating: null,
+        notes: '',
+        itemType: undefined,
+      }));
 
-      removeItem: (role, category, id) =>
-        set((state) => ({
-          roleData: {
-            ...state.roleData,
-            [role]: {
-              ...state.roleData[role],
-              items: {
-                ...(state.roleData[role]?.items || {}),
-                [category]: (state.roleData[role]?.items[category] || []).filter(
-                  (item) => item.id !== id
-                ),
-              },
-            },
-          },
-        })),
-
-      setSelectedRole: (role) => set({ selectedRole: role }),
-      
-      getItemsForRole: (role, category) => {
-        return get().roleData[role]?.items[category] || [];
-      },
-    }),
-    {
-      name: 'traffic-light-storage',
-      version: 2,
+      await db.trafficLightItems.bulkAdd(items);
     }
-  )
-);
+  },
+
+  addItem: async (role, category, item) => {
+    const fullItem = {
+      ...item,
+      role,
+      category,
+    };
+    await db.trafficLightItems.add(fullItem);
+  },
+
+  updateItem: async (id, updates) => {
+    await db.trafficLightItems.update(id, updates);
+  },
+
+  removeItem: async (id) => {
+    await db.trafficLightItems.delete(id);
+  },
+
+  getItemsForRole: async (role, category) => {
+    return await db.trafficLightItems
+      .where(['role', 'category'])
+      .equals([role, category])
+      .toArray();
+  },
+}));
+
+// Custom hook to get live items for a role and category
+export const useTrafficLightItems = (role: string, category: string) => {
+  return useLiveQuery(
+    () => db.trafficLightItems
+      .where(['role', 'category'])
+      .equals([role, category])
+      .toArray(),
+    [role, category]
+  ) || [];
+};

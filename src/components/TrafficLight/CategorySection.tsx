@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { TrafficLightItem } from './TrafficLightItem';
-import { useTrafficLightStore } from '../../store/useTrafficLightStore';
+import { TrafficLightItem as TrafficLightItemComponent } from './TrafficLightItem';
+import { useTrafficLightStore, useTrafficLightItems } from '../../store/useTrafficLightStore';
 
 interface CategorySectionProps {
   title: string;
@@ -20,8 +20,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   onAddItem,
   bgColor,
 }) => {
-  const { initializeCategory, getItemsForRole } = useTrafficLightStore();
-  const items = getItemsForRole(role, category);
+  const { initializeCategory } = useTrafficLightStore();
+  const items = useTrafficLightItems(role, category);
 
   const calculateCategoryProgress = () => {
     if (items.length === 0) return 0;
@@ -57,7 +57,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
       <div className="p-4">
         <div className="space-y-4">
           {items.map((item) => (
-            <TrafficLightItem
+            <TrafficLightItemComponent
               key={item.id}
               role={role}
               category={category}
