@@ -1,36 +1,30 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface WeekStatus {
-  weekId: string;
-  status: 'completed' | 'in-progress' | 'not-started';
-}
+import { db, WeekStatus } from '../db/db';
 
 interface WeekStore {
-  weekStatuses: Record<string, WeekStatus>;
-  updateWeekStatus: (weekId: string, status: WeekStatus['status']) => void;
-  getWeekStatus: (weekId: string) => WeekStatus['status'];
+  updateWeekStatus: (weekId: string, status: WeekStatus) => Promise<void>;
+  getWeekStatus: (weekId: string) => Promise<WeekStatus>;
 }
 
-export const useWeekStore = create<WeekStore>()(
-  persist(
-    (set, get) => ({
-      weekStatuses: {},
-      
-      updateWeekStatus: (weekId, status) =>
-        set((state) => ({
-          weekStatuses: {
-            ...state.weekStatuses,
-            [weekId]: { weekId, status },
-          },
-        })),
-        
-      getWeekStatus: (weekId) =>
-        get().weekStatuses[weekId]?.status || 'not-started',
-    }),
-    {
-      name: 'week-status-storage',
-      version: 1,
+export const useWeekStore = create<WeekStore>()((set, get) => ({
+  updateWeekStatus: async (weekId, status) => {
+    try {
+      console.log('🔄 Updating week status:', { weekId, status });
+      await db.weekStatuses.put({ weekId, status });
+      console.log('✅ Week status updated successfully');
+    } catch (error) {
+      console.error('❌ Failed to update week status:', error);
+      throw error;
     }
-  )
-);
+  },
+
+  getWeekStatus: async (weekId) => {
+    try {
+      const entry = await db.weekStatuses.get(weekId);
+      return entry?.status || 'not-started';
+    } catch (error) {
+      console.error('❌ Failed to get week status:', error);
+      return 'not-started';
+    }
+  },
+}));

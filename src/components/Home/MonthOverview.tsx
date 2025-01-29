@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { format, addWeeks, parse } from 'date-fns';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useWeekStore } from '../../store/useWeekStore';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { WeekStatus } from '../../db/db';
 
 interface MonthOverviewProps {
   onWeekSelect: (date: Date) => void;
@@ -19,11 +21,12 @@ interface MonthData {
 
 export const MonthOverview: React.FC<MonthOverviewProps> = ({ onWeekSelect }) => {
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+  const [weekStatuses, setWeekStatuses] = useState<Record<string, WeekStatus>>({});
   const getWeekStatus = useWeekStore((state) => state.getWeekStatus);
 
   // Start with December 30, 2024 (Monday)
   const startDate = parse('2024-12-30', 'yyyy-MM-dd', new Date());
-
+      
   const monthsData: MonthData[] = [
     { name: 'January', weeks: generateWeeks(1, 5, startDate) },
     { name: 'February', weeks: generateWeeks(6, 9, startDate) },
@@ -39,6 +42,27 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({ onWeekSelect }) =>
     { name: 'December', weeks: generateWeeks(49, 52, startDate) },
   ];
 
+  // Load all week statuses for the year
+  useEffect(() => {
+    const loadWeekStatuses = async () => {
+      const statuses: Record<string, WeekStatus> = {};
+      for (const month of monthsData) {
+        for (const week of month.weeks) {
+          const weekId = format(week.startDate, 'yyyy-MM-dd');
+          try {
+            const status = await getWeekStatus(weekId);
+            statuses[weekId] = status;
+          } catch (error) {
+            console.error('Failed to load week status:', error);
+            statuses[weekId] = 'not-started';
+          }
+        }
+      }
+      setWeekStatuses(statuses);
+    };
+    loadWeekStatuses();
+  }, [monthsData, getWeekStatus]);
+      
   // Handle clicking outside to collapse
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,7 +81,7 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({ onWeekSelect }) =>
   };
 
   const getStatusColor = (weekId: string) => {
-    const status = getWeekStatus(weekId);
+    const status = weekStatuses[weekId] || 'not-started';
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
@@ -65,6 +89,8 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({ onWeekSelect }) =>
         return 'bg-yellow-100 text-yellow-800';
       case 'not-started':
         return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -73,7 +99,7 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({ onWeekSelect }) =>
       {monthsData.map((month) => {
         const isExpanded = expandedMonth === month.name;
         const completedWeeks = month.weeks.filter(w => 
-          getWeekStatus(format(w.startDate, 'yyyy-MM-dd')) === 'completed'
+          weekStatuses[format(w.startDate, 'yyyy-MM-dd')] === 'completed'
         ).length;
         const progress = (completedWeeks / month.weeks.length) * 100;
 
@@ -107,7 +133,7 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({ onWeekSelect }) =>
                 <div className="grid grid-cols-4 gap-4">
                   {month.weeks.map((week) => {
                     const weekId = format(week.startDate, 'yyyy-MM-dd');
-                    const status = getWeekStatus(weekId);
+                    const status = weekStatuses[weekId] || 'not-started';
                     return (
                       <button
                         key={week.weekNumber}

@@ -31,17 +31,33 @@ export interface Account {
   budgetedHours?: number;
 }
 
+export type WeekStatus = 'completed' | 'in-progress' | 'not-started';
+
+export interface WeekStatusEntry {
+  weekId: string;
+  status: WeekStatus;
+}
+
+export interface WeekNotes {
+  weekId: string;
+  notes: string;
+}
+
 export class AppDb extends Dexie {
   trafficLightItems!: Table<TrafficLightItem>;
   timesheetEntries!: Table<TimesheetEntry>;
   accounts!: Table<Account>;
+  weekStatuses!: Table<WeekStatusEntry>;
+  weekNotes!: Table<WeekNotes>;
 
   constructor() {
     super('AppDb');
     this.version(4).stores({
       trafficLightItems: 'id, [role+category]',
       timesheetEntries: 'id, [weekId+slotId], accountId, date',
-      accounts: 'id, jobId, name, group'
+      accounts: 'id, jobId, name, group',
+      weekStatuses: 'weekId',
+      weekNotes: 'weekId'
     });
   }
 }

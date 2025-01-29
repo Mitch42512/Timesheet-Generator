@@ -21,9 +21,8 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
 
   const { getUniqueAccountsForWeek, getAccountHours, calculateWeekStats, clearWeekEntries } = useTimesheetStore();
   const updateWeekStatus = useWeekStore((state) => state.updateWeekStatus);
-  const weekStatus = useWeekStore((state) => state.getWeekStatus(weekId));
+  const getWeekStatus = useWeekStore((state) => state.getWeekStatus);
   const { setNotes, getNotes } = useWeekNotesStore();
-  const notes = getNotes(weekId);
 
   // Use live queries to automatically update when data changes
   const uniqueAccounts = useLiveQuery(
@@ -47,6 +46,16 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
     [weekId]
   ) || { chargeableHours: 0, utilization: 0 };
 
+  const weekStatus = useLiveQuery(
+    async () => await getWeekStatus(weekId),
+    [weekId]
+  ) || 'not-started';
+
+  const notes = useLiveQuery(
+    async () => await getNotes(weekId),
+    [weekId]
+  ) || '';
+
   const hasEntries = uniqueAccounts.length > 0;
   const chargeableAccounts = uniqueAccounts.filter(account => account.isChargeable && account.group !== 'extra');
   const nonChargeableAccounts = uniqueAccounts.filter(account => !account.isChargeable && account.group !== 'extra');
@@ -55,7 +64,9 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
   // Update week status when entries change
   useEffect(() => {
     if (hasEntries && weekStatus === 'not-started') {
-      updateWeekStatus(weekId, 'in-progress');
+      updateWeekStatus(weekId, 'in-progress').catch(error => {
+        console.error('Failed to update week status:', error);
+      });
     }
   }, [hasEntries, weekId, weekStatus, updateWeekStatus]);
 
@@ -64,8 +75,8 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
     try {
       setIsLoading(true);
       await clearWeekEntries(weekId);
-      setNotes(weekId, '');
-      updateWeekStatus(weekId, 'not-started');
+      await setNotes(weekId, '');
+      await updateWeekStatus(weekId, 'not-started');
       await db.timesheetEntries.where('weekId').equals(weekId).toArray();
     } catch (error) {
       console.error('Failed to clear week entries:', error);
@@ -74,9 +85,24 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
     }
   };
 
-  const handleSubmitWeek = () => {
+  const handleSubmitWeek = async () => {
     if (window.confirm('Are you sure you want to mark this week as completed?')) {
-      updateWeekStatus(weekId, 'completed');
+      try {
+        setIsLoading(true);
+        await updateWeekStatus(weekId, 'completed');
+      } catch (error) {
+        console.error('Failed to submit week:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleNotesChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    try {
+      await setNotes(weekId, e.target.value);
+    } catch (error) {
+      console.error('Failed to update notes:', error);
     }
   };
 
@@ -195,7 +221,7 @@ export const UtilizationSidebar: React.FC<UtilizationSidebarProps> = ({
         <div className="mt-4">
           <textarea
             value={notes || ''}
-            onChange={(e) => setNotes(weekId, e.target.value)}
+            onChange={handleNotesChange}
             placeholder="Add week notes here..."
             className="w-full px-3 py-2 border rounded-lg resize-none placeholder:italic text-sm min-h-[100px]"
             disabled={isLoading}
