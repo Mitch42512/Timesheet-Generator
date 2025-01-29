@@ -76,6 +76,14 @@ export interface WeekNotes {
   notes: string;
 }
 
+export interface Event {
+  id: string;
+  title: string;
+  date: string;
+  type: 'holiday' | 'company' | 'personal';
+  isDefault: 0 | 1;
+}
+
 export interface SmartGoal {
   id: string;
   name: string;
@@ -98,10 +106,11 @@ export class AppDb extends Dexie {
   profileImages!: Table<ProfileImage>;
   userProfiles!: Table<UserProfile>;
   smartGoals!: Table<SmartGoal>;
+  events!: Table<Event>;
 
   constructor() {
     super('AppDb');
-    this.version(3).stores({
+    this.version(4).stores({
       trafficLightItems: 'id, [role+category]',
       timesheetEntries: 'id, [weekId+slotId], accountId, date',
       accounts: 'id, jobId, name, group',
@@ -110,7 +119,8 @@ export class AppDb extends Dexie {
       images: 'id, updatedAt',
       profileImages: 'id, updatedAt',
       userProfiles: 'id, updatedAt',
-      smartGoals: 'id, createdAt'
+      smartGoals: 'id, createdAt',
+      events: 'id, date, isDefault'
     });
   }
 }

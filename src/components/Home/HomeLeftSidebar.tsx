@@ -16,9 +16,20 @@ const positions = [
     { id: 'associate-director', label: 'Associate Director' },
 ];
 
+const getEventColor = (type: 'holiday' | 'company' | 'personal') => {
+  switch (type) {
+    case 'holiday':
+      return 'bg-green-100 text-green-800';
+    case 'company':
+      return 'bg-orange-100 text-orange-800';
+    case 'personal':
+      return 'bg-blue-100 text-blue-800';
+  }
+};
+
 export const HomeLeftSidebar: React.FC = () => {
   const { name, position, updateName, updatePosition, loadUserProfile, initialized } = useUserStore();
-  const { events, addEvent, removeEvent } = useEventStore();
+  const { events, addEvent, removeEvent, loadEvents } = useEventStore();
   const { uploadProfileImage, getProfileImage } = useProfileImageStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
@@ -34,12 +45,13 @@ export const HomeLeftSidebar: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Load user profile on mount
+  // Load user profile and events on mount
   useEffect(() => {
     if (!initialized) {
       loadUserProfile();
     }
-  }, [initialized, loadUserProfile]);
+    loadEvents();
+  }, [initialized, loadUserProfile, loadEvents]);
 
   // Use live query to get the profile image
   const profileImage = useLiveQuery(
@@ -261,20 +273,22 @@ export const HomeLeftSidebar: React.FC = () => {
             .map((event) => (
               <div
                 key={event.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className={`flex items-center justify-between p-3 rounded-lg ${getEventColor(event.type)}`}
               >
                 <div>
                   <div className="font-medium">{event.title}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm opacity-75">
                     {format(new Date(event.date), 'MMM d, yyyy')}
                   </div>
                 </div>
-                <button
-                  onClick={() => removeEvent(event.id)}
-                  className="p-1 hover:bg-gray-200 rounded-full"
-                >
-                  <X className="w-4 h-4 text-gray-500" />
-                </button>
+                {!event.isDefault && (
+                  <button
+                    onClick={() => removeEvent(event.id)}
+                    className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             ))}
         </div>

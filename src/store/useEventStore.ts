@@ -1,54 +1,56 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  type: 'holiday' | 'company' | 'personal';
-}
+import { db } from '../db/db';
+import type { Event } from '../db/db';
 
 interface EventStore {
   events: Event[];
-  addEvent: (event: Omit<Event, 'id'>) => void;
-  removeEvent: (id: string) => void;
+  isLoading: boolean;
+  loadEvents: () => Promise<void>;
+  addEvent: (event: Omit<Event, 'id' | 'isDefault'>) => Promise<void>;
+  removeEvent: (id: string) => Promise<void>;
 }
 
-export const useEventStore = create<EventStore>()(
-  persist(
-    (set) => ({
-      events: [
-        {
-          id: '1',
-          title: 'Christmas Party',
-          date: '2025-12-20',
-          type: 'company',
-        },
-        {
-          id: '2',
-          title: 'Easter Break',
-          date: '2025-04-18',
-          type: 'holiday',
-        },
-        {
-          id: '3',
-          title: 'June Break',
-          date: '2025-06-15',
-          type: 'holiday',
-        },
-      ],
-      addEvent: (event) =>
-        set((state) => ({
-          events: [...state.events, { ...event, id: crypto.randomUUID() }],
-        })),
-      removeEvent: (id) =>
-        set((state) => ({
-          events: state.events.filter((event) => event.id !== id),
-        })),
-    }),
-    {
-      name: 'event-storage',
-      version: 1,
+export const useEventStore = create<EventStore>()((set, get) => ({
+  events: [],
+  isLoading: true,
+
+  loadEvents: async () => {
+    try {
+      const events = await db.events.toArray();
+      set({ events, isLoading: false });
+    } catch (error) {
+      console.error('Error loading events:', error);
+      set({ isLoading: false });
     }
-  )
-);
+  },
+
+  addEvent: async (event) => {
+    try {
+      const newEvent: Event = {
+        ...event,
+        id: crypto.randomUUID(),
+        isDefault: 0 as const
+      };
+      await db.events.add(newEvent);
+      const events = await db.events.toArray();
+      set({ events });
+    } catch (error) {
+      console.error('Error adding event:', error);
+    }
+  },
+
+  removeEvent: async (id) => {
+    try {
+      const event = await db.events.get(id);
+      if (event?.isDefault === 1) {
+        console.warn('Cannot delete default event');
+        return;
+      }
+      await db.events.delete(id);
+      const events = await db.events.toArray();
+      set({ events });
+    } catch (error) {
+      console.error('Error removing event:', error);
+    }
+  }
+}));

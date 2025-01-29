@@ -10,6 +10,7 @@ import { SmartGoalsPage } from './components/SmartGoals/SmartGoalsPage';
 import { ResourcesPage } from './components/Resources/ResourcesPage';
 import { TabNavigation } from './components/Navigation/TabNavigation';
 import { initializeDb } from './db/initializeDb';
+import { clearZustandStorage } from './utils/clearStorage';
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -23,6 +24,9 @@ function App() {
   useEffect(() => {
     initializeDb();
   }, []);
+
+  // Make clearZustandStorage available globally
+  (window as any).clearZustandStorage = clearZustandStorage;
 
   const renderContent = () => {
     switch (activeTab) {

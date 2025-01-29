@@ -73,27 +73,63 @@ const exampleSmartGoal = {
   createdAt: new Date().toISOString()
 };
 
+// Define default events
+const DEFAULT_EVENTS = [
+  {
+    id: 'default-event-1',
+    title: 'Christmas Party',
+    date: '2025-12-20',
+    type: 'company' as const,
+    isDefault: 1 as const
+  },
+  {
+    id: 'default-event-2',
+    title: 'Easter Break',
+    date: '2025-04-18',
+    type: 'holiday' as const,
+    isDefault: 1 as const
+  },
+  {
+    id: 'default-event-3',
+    title: 'June Break',
+    date: '2025-06-15',
+    type: 'holiday' as const,
+    isDefault: 1 as const
+  }
+];
+
 export const initializeDb = async () => {
   try {
     // Clear old Zustand storage
     localStorage.removeItem('smart-goals-storage');
+    localStorage.removeItem('event-storage');
     
     // Check if this is first-time initialization
-    const isFirstTime = localStorage.getItem('smart-goals-initialized') !== 'true';
+    const isFirstTime = localStorage.getItem('db-initialized') !== 'true';
     
     if (isFirstTime) {
       // Add the default example goal
       await db.smartGoals.add(DEFAULT_EXAMPLE_GOAL);
       
+      // Add default events
+      await db.events.bulkAdd(DEFAULT_EVENTS);
+      
       // Mark as initialized
-      localStorage.setItem('smart-goals-initialized', 'true');
-      console.log('Added default example goal');
+      localStorage.setItem('db-initialized', 'true');
+      console.log('Added default example goal and events');
     }
 
-    // Check if example goal exists
+    // Always check for and add example goal if it doesn't exist
     const existingGoal = await db.smartGoals.get('example-goal');
     if (!existingGoal) {
       await db.smartGoals.add(exampleSmartGoal);
+    }
+
+    // Always check for and add default events if they don't exist
+    const existingEvents = await db.events.where('isDefault').equals(1).toArray();
+    if (existingEvents.length === 0) {
+      await db.events.bulkAdd(DEFAULT_EVENTS);
+      console.log('Added default events');
     }
 
     // Initialize other tables as needed
