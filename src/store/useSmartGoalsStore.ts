@@ -1,109 +1,102 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-export interface Milestone {
-  id: string;
-  text: string;
-  isCompleted: boolean;
-}
-
-export interface Action {
-  id: string;
-  text: string;
-  isCompleted: boolean;
-}
-
-export interface SmartGoal {
-  id: string;
-  name: string;
-  areaOfFocus: string;
-  currentState: string;
-  futureState: string;
-  actions: Action[];
-  dueDate: string;
-  milestones: Milestone[];
-  createdAt: string;
-}
+import { db } from '../db/db';
+import type { SmartGoal } from '../db/db';
 
 interface SmartGoalsStore {
   goals: SmartGoal[];
-  addGoal: (goal: SmartGoal) => void;
-  updateGoal: (id: string, updates: Partial<SmartGoal>) => void;
-  deleteGoal: (id: string) => void;
-  toggleMilestone: (goalId: string, milestoneId: string) => void;
-  toggleAction: (goalId: string, actionId: string) => void;
+  isLoading: boolean;
+  loadGoals: () => Promise<void>;
+  addGoal: (goal: SmartGoal) => Promise<void>;
+  updateGoal: (id: string, updates: Partial<SmartGoal>) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
+  toggleMilestone: (goalId: string, milestoneId: string) => Promise<void>;
+  toggleAction: (goalId: string, actionId: string) => Promise<void>;
 }
 
-export const useSmartGoalsStore = create<SmartGoalsStore>()(
-  persist(
-    (set) => ({
-      goals: [{
-        id: 'example-goal',
-        name: 'Example Goal',
-        areaOfFocus: 'Here is an example SMART goal',
-        currentState: 'Where I am currently',
-        futureState: 'Where I want to be',
-        dueDate: '2025-04-12',
-        actions: [{
-          id: 'example-action-1',
-          text: 'Create a SMART goal',
-          isCompleted: false
-        }],
-        milestones: [{
-          id: 'example-milestone-1',
-          text: 'Check off this goal',
-          isCompleted: false
-        }],
-        createdAt: new Date().toISOString()
-      }],
-      addGoal: (goal) =>
-        set((state) => ({
-          goals: [...state.goals, goal],
-        })),
-      updateGoal: (id, updates) =>
-        set((state) => ({
-          goals: state.goals.map((goal) =>
-            goal.id === id ? { ...goal, ...updates } : goal
-          ),
-        })),
-      deleteGoal: (id) =>
-        set((state) => ({
-          goals: state.goals.filter((goal) => goal.id !== id),
-        })),
-      toggleMilestone: (goalId, milestoneId) =>
-        set((state) => ({
-          goals: state.goals.map((goal) =>
-            goal.id === goalId
-              ? {
-                  ...goal,
-                  milestones: goal.milestones.map((milestone) =>
-                    milestone.id === milestoneId
-                      ? { ...milestone, isCompleted: !milestone.isCompleted }
-                      : milestone
-                  ),
-                }
-              : goal
-          ),
-        })),
-      toggleAction: (goalId, actionId) =>
-        set((state) => ({
-          goals: state.goals.map((goal) =>
-            goal.id === goalId
-              ? {
-                  ...goal,
-                  actions: goal.actions.map((action) =>
-                    action.id === actionId
-                      ? { ...action, isCompleted: !action.isCompleted }
-                      : action
-                  ),
-                }
-              : goal
-          ),
-        })),
-    }),
-    {
-      name: 'smart-goals-storage',
-      version: 1,
+export const useSmartGoalsStore = create<SmartGoalsStore>((set, get) => ({
+  goals: [],
+  isLoading: true,
+
+  loadGoals: async () => {
+    try {
+      const goals = await db.smartGoals.toArray();
+      set({ goals, isLoading: false });
+    } catch (error) {
+      console.error('Error loading goals:', error);
+      set({ isLoading: false });
     }
-  )
-);
+  },
+
+  addGoal: async (goal) => {
+    try {
+      await db.smartGoals.add(goal);
+      const goals = await db.smartGoals.toArray();
+      set({ goals });
+    } catch (error) {
+      console.error('Error adding goal:', error);
+    }
+  },
+
+  updateGoal: async (id, updates) => {
+    try {
+      await db.smartGoals.update(id, updates);
+      const goals = await db.smartGoals.toArray();
+      set({ goals });
+    } catch (error) {
+      console.error('Error updating goal:', error);
+    }
+  },
+
+  deleteGoal: async (id) => {
+    try {
+      // Don't allow deletion of the example goal
+      if (id === 'example-goal') {
+        console.warn('Cannot delete example goal');
+        return;
+      }
+      await db.smartGoals.delete(id);
+      const goals = await db.smartGoals.toArray();
+      set({ goals });
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+    }
+  },
+
+  toggleMilestone: async (goalId, milestoneId) => {
+    try {
+      const goal = await db.smartGoals.get(goalId);
+      if (!goal) return;
+
+      const updatedMilestones = goal.milestones.map((milestone) =>
+        milestone.id === milestoneId
+          ? { ...milestone, isCompleted: !milestone.isCompleted }
+          : milestone
+      );
+
+      await db.smartGoals.update(goalId, { milestones: updatedMilestones });
+      const goals = await db.smartGoals.toArray();
+      set({ goals });
+    } catch (error) {
+      console.error('Error toggling milestone:', error);
+    }
+  },
+
+  toggleAction: async (goalId, actionId) => {
+    try {
+      const goal = await db.smartGoals.get(goalId);
+      if (!goal) return;
+
+      const updatedActions = goal.actions.map((action) =>
+        action.id === actionId
+          ? { ...action, isCompleted: !action.isCompleted }
+          : action
+      );
+
+      await db.smartGoals.update(goalId, { actions: updatedActions });
+      const goals = await db.smartGoals.toArray();
+      set({ goals });
+    } catch (error) {
+      console.error('Error toggling action:', error);
+    }
+  },
+}));

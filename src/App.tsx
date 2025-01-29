@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MonthSelector } from './components/Navigation/MonthSelector';
 import { WeekView } from './components/WeekView';
 import { AccountsPage } from './components/Accounts/AccountsPage';
@@ -9,6 +9,7 @@ import { TrafficLightPage } from './components/TrafficLight/TrafficLightPage';
 import { SmartGoalsPage } from './components/SmartGoals/SmartGoalsPage';
 import { ResourcesPage } from './components/Resources/ResourcesPage';
 import { TabNavigation } from './components/Navigation/TabNavigation';
+import { initializeDb } from './db/initializeDb';
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -18,6 +19,10 @@ function App() {
     setCurrentDate(date);
     setActiveTab('timesheet');
   };
+
+  useEffect(() => {
+    initializeDb();
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {

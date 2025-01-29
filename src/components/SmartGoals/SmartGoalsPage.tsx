@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Check, ChevronRight, ChevronDown } from 'lucide-react';
-import { useSmartGoalsStore, SmartGoal } from '../../store/useSmartGoalsStore';
+import { useSmartGoalsStore } from '../../store/useSmartGoalsStore';
+import type { SmartGoal } from '../../db/db';
 import { SmartGoalModal } from './SmartGoalModal';
 
 export const SmartGoalsPage: React.FC = () => {
   const [modalStates, setModalStates] = useState<{ [key: string]: boolean }>({});
   const [editingGoal, setEditingGoal] = useState<SmartGoal | null>(null);
   const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
-  const { goals, addGoal, updateGoal, toggleMilestone, deleteGoal } = useSmartGoalsStore();
+  const { 
+    goals, 
+    loadGoals, 
+    addGoal, 
+    updateGoal, 
+    toggleMilestone, 
+    toggleAction,
+    deleteGoal 
+  } = useSmartGoalsStore();
+
+  useEffect(() => {
+    loadGoals();
+  }, [loadGoals]);
 
   const handleSubmit = (goalData: Omit<SmartGoal, 'id' | 'createdAt'>) => {
     if (editingGoal) {
@@ -51,11 +64,10 @@ export const SmartGoalsPage: React.FC = () => {
     }));
   };
 
-  const calculateProgress = (milestones: SmartGoal['milestones']) => {
-    if (milestones.length === 0) return 0;
-    return Math.round(
-      (milestones.filter((m) => m.isCompleted).length / milestones.length) * 100
-    );
+  const calculateProgress = (goal: SmartGoal) => {
+    if (goal.milestones.length === 0) return 0;
+    const completedMilestones = goal.milestones.filter(m => m.isCompleted).length;
+    return Math.round((completedMilestones / goal.milestones.length) * 100);
   };
 
   const toggleGoalExpansion = (goalId: string) => {
@@ -92,7 +104,7 @@ export const SmartGoalsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-medium text-blue-600">
-                      {calculateProgress(goal.milestones)}% Complete
+                      {calculateProgress(goal)}% Complete
                     </span>
                     <div className="flex items-center gap-2">
                       <button

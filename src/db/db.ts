@@ -45,6 +45,18 @@ export interface ProfileImage {
   updatedAt: string;
 }
 
+export interface Milestone {
+  id: string;
+  text: string;
+  isCompleted: boolean;
+}
+
+export interface Action {
+  id: string;
+  text: string;
+  isCompleted: boolean;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -64,6 +76,18 @@ export interface WeekNotes {
   notes: string;
 }
 
+export interface SmartGoal {
+  id: string;
+  name: string;
+  areaOfFocus: string;
+  currentState: string;
+  futureState: string;
+  actions: Action[];
+  dueDate: string;
+  milestones: Milestone[];
+  createdAt: string;
+}
+
 export class AppDb extends Dexie {
   trafficLightItems!: Table<TrafficLightItem>;
   timesheetEntries!: Table<TimesheetEntry>;
@@ -73,10 +97,11 @@ export class AppDb extends Dexie {
   images!: Table<UserImage>;
   profileImages!: Table<ProfileImage>;
   userProfiles!: Table<UserProfile>;
+  smartGoals!: Table<SmartGoal>;
 
   constructor() {
     super('AppDb');
-    this.version(7).stores({
+    this.version(3).stores({
       trafficLightItems: 'id, [role+category]',
       timesheetEntries: 'id, [weekId+slotId], accountId, date',
       accounts: 'id, jobId, name, group',
@@ -84,7 +109,8 @@ export class AppDb extends Dexie {
       weekNotes: 'weekId',
       images: 'id, updatedAt',
       profileImages: 'id, updatedAt',
-      userProfiles: 'id, updatedAt'
+      userProfiles: 'id, updatedAt',
+      smartGoals: 'id, createdAt'
     });
   }
 }
