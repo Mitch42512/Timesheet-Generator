@@ -2,20 +2,29 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Info } from 'lucide-react';
-import { Account } from '../../types';
+import { Account } from '../../db/db';
 
 interface DraggableAccountProps {
   account: Account;
+  onMove: (accountId: string, groupId: string) => Promise<void>;
+  disabled: boolean;
 }
 
-export const DraggableAccount: React.FC<DraggableAccountProps> = ({ account }) => {
+export const DraggableAccount: React.FC<DraggableAccountProps> = ({
+  account,
+  onMove,
+  disabled
+}) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: account.id });
+  } = useSortable({ 
+    id: account.id,
+    disabled
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -31,7 +40,7 @@ export const DraggableAccount: React.FC<DraggableAccountProps> = ({ account }) =
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab hover:bg-gray-50 p-1 rounded"
+        className={`cursor-grab hover:bg-gray-50 p-1 rounded ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
       >
         <GripVertical className="w-4 h-4 text-gray-400" />
       </div>

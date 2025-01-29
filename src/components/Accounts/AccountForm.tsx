@@ -14,26 +14,38 @@ export const AccountForm: React.FC = () => {
     color: '#B8CCE4',
     budgetedHours: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addAccount({
-      ...formData,
-      id: crypto.randomUUID(),
-      isActive: true,
-      isChargeable: formData.accountType === 'chargeable',
-      group: formData.accountType,
-      budgetedHours: formData.budgetedHours ? parseFloat(formData.budgetedHours) : undefined,
-    });
-    setFormData({
-      name: '',
-      jobNumber: '',
-      jobId: '',
-      description: '',
-      accountType: 'chargeable',
-      color: '#B8CCE4',
-      budgetedHours: '',
-    });
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await addAccount({
+        ...formData,
+        id: crypto.randomUUID(),
+        isActive: true,
+        isChargeable: formData.accountType === 'chargeable',
+        group: formData.accountType,
+        budgetedHours: formData.budgetedHours ? parseFloat(formData.budgetedHours) : undefined,
+      });
+
+      setFormData({
+        name: '',
+        jobNumber: '',
+        jobId: '',
+        description: '',
+        accountType: 'chargeable',
+        color: '#B8CCE4',
+        budgetedHours: '',
+      });
+    } catch (error) {
+      console.error('Failed to add account:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -138,9 +150,12 @@ export const AccountForm: React.FC = () => {
       <div className="md:col-span-2">
         <button
           type="submit"
-          className="w-full bg-[#4F81BD] text-white py-2 px-4 rounded-md hover:bg-[#385D8A] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          disabled={isSubmitting}
+          className={`w-full bg-[#4F81BD] text-white py-2 px-4 rounded-md hover:bg-[#385D8A] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          Add Account
+          {isSubmitting ? 'Adding Account...' : 'Add Account'}
         </button>
       </div>
     </form>

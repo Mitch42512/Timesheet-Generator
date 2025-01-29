@@ -1,15 +1,15 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Account } from '../types';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { db, Account } from '../db/db';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, eachWeekOfInterval, startOfMonth, endOfMonth } from 'date-fns';
 
 interface TimesheetStore {
   timeEntries: Record<string, Record<string, Account>>;
-  addTimeEntry: (weekId: string, slotId: string, account: Account) => void;
-  removeTimeEntry: (weekId: string, slotId: string) => void;
-  clearWeekEntries: (weekId: string) => void;
-  getTimeEntry: (weekId: string, slotId: string) => Account | undefined;
-  getWeekEntries: (weekId: string) => Record<string, Account>;
+  addTimeEntry: (weekId: string, slotId: string, account: Account) => Promise<void>;
+  removeTimeEntry: (weekId: string, slotId: string) => Promise<void>;
+  clearWeekEntries: (weekId: string) => Promise<void>;
+  getTimeEntry: (weekId: string, slotId: string) => Promise<Account | undefined>;
+  getWeekEntries: (weekId: string) => Promise<Record<string, Account>>;
   getUniqueAccountsForWeek: (weekId: string) => Account[];
   getAccountHours: (weekId: string, accountId: string) => {
     daily: number[];
@@ -30,56 +30,117 @@ export const useTimesheetStore = create<TimesheetStore>()(
     (set, get) => ({
       timeEntries: {},
 
-      addTimeEntry: (weekId, slotId, account) => {
-        set((state) => ({
-          timeEntries: {
-            ...state.timeEntries,
-            [weekId]: {
-              ...state.timeEntries[weekId],
-              [slotId]: account,
-            },
-          },
-        }));
-      },
+      addTimeEntry: async (weekId, slotId, account) => {
+        try {
+          // First ensure the account exists in the accounts table
+          await db.accounts.put(account);
 
-      removeTimeEntry: (weekId, slotId) =>
-        set((state) => {
-          const weekEntries = state.timeEntries[weekId] || {};
-          const { [slotId]: _, ...rest } = weekEntries;
-          return {
+          const entry = {
+            id: crypto.randomUUID(),
+            weekId,
+            slotId,
+            accountId: account.id,
+            date: weekId
+          };
+
+          await db.timesheetEntries.put(entry);
+          
+          // Update local state for immediate UI updates
+          set(state => ({
             timeEntries: {
               ...state.timeEntries,
-              [weekId]: rest,
-            },
-          };
-        }),
-
-      clearWeekEntries: (weekId) => {
-        const weekStart = new Date(weekId);
-        const days = eachDayOfInterval({
-          start: startOfWeek(weekStart, { weekStartsOn: 1 }),
-          end: endOfWeek(weekStart, { weekStartsOn: 1 }),
-        });
-
-        set((state) => {
-          const newTimeEntries = { ...state.timeEntries };
-          days.forEach(day => {
-            const dayId = format(day, 'yyyy-MM-dd');
-            if (newTimeEntries[dayId]) {
-              delete newTimeEntries[dayId];
+              [weekId]: {
+                ...state.timeEntries[weekId],
+                [slotId]: account
+              }
             }
+          }));
+        } catch (error) {
+          console.error('Error adding time entry:', error);
+        }
+      },
+
+      removeTimeEntry: async (weekId, slotId) => {
+        try {
+          await db.timesheetEntries
+            .where(['weekId', 'slotId'])
+            .equals([weekId, slotId])
+            .delete();
+
+          // Update local state
+          set(state => {
+            const weekEntries = { ...state.timeEntries[weekId] };
+            delete weekEntries[slotId];
+            return {
+              timeEntries: {
+                ...state.timeEntries,
+                [weekId]: weekEntries
+              }
+            };
           });
-          return { timeEntries: newTimeEntries };
-        });
+        } catch (error) {
+          console.error('Error removing time entry:', error);
+        }
       },
 
-      getTimeEntry: (weekId, slotId) => {
-        const weekEntries = get().timeEntries[weekId] || {};
-        return weekEntries[slotId];
+      getTimeEntry: async (weekId, slotId) => {
+        try {
+          const entry = await db.timesheetEntries
+            .where(['weekId', 'slotId'])
+            .equals([weekId, slotId])
+            .first();
+
+          if (entry) {
+            const account = await db.accounts.get(entry.accountId);
+            return account || undefined;
+          }
+          return undefined;
+        } catch (error) {
+          console.error('Error getting time entry:', error);
+          return undefined;
+        }
       },
 
-      getWeekEntries: (weekId) => {
-        return get().timeEntries[weekId] || {};
+      getWeekEntries: async (weekId) => {
+        try {
+          const entries = await db.timesheetEntries
+            .where('weekId')
+            .equals(weekId)
+            .toArray();
+
+          const accounts = await db.accounts.toArray();
+          const accountMap = Object.fromEntries(
+            accounts.map(account => [account.id, account])
+          );
+
+          return entries.reduce((acc, entry) => {
+            const account = accountMap[entry.accountId];
+            if (account) {
+              acc[entry.slotId] = account;
+            }
+            return acc;
+          }, {} as Record<string, Account>);
+        } catch (error) {
+          console.error('Error getting week entries:', error);
+          return {};
+        }
+      },
+
+      clearWeekEntries: async (weekId) => {
+        try {
+          await db.timesheetEntries
+            .where('weekId')
+            .equals(weekId)
+            .delete();
+
+          // Update local state
+          set(state => {
+            const { [weekId]: _, ...rest } = state.timeEntries;
+            return { timeEntries: rest };
+          });
+        } catch (error) {
+          console.error('Error clearing week entries:', error);
+        }
       },
 
       getUniqueAccountsForWeek: (weekId) => {
@@ -182,7 +243,35 @@ export const useTimesheetStore = create<TimesheetStore>()(
     }),
     {
       name: 'timesheet-storage',
-      version: 1,
+      version: 2,
+      storage: createJSONStorage(() => localStorage),
+      migrate: async (persistedState: any, version: number) => {
+        if (version === 1) {
+          // Migrate old timesheet entries to IndexedDB
+          const oldEntries = (persistedState as { timeEntries: Record<string, Record<string, Account>> }).timeEntries || {};
+          
+          // Batch process all entries
+          const migratePromises = Object.entries(oldEntries).flatMap(([weekId, weekEntries]) =>
+            Object.entries(weekEntries).map(async ([slotId, account]) => {
+              // Store account
+              await db.accounts.put(account);
+
+              // Store timesheet entry
+              const entry = {
+                id: crypto.randomUUID(),
+                weekId,
+                slotId,
+                accountId: account.id,
+                date: weekId
+              };
+              await db.timesheetEntries.put(entry);
+            })
+          );
+
+          await Promise.all(migratePromises);
+        }
+        return persistedState;
+      }
     }
   )
 );

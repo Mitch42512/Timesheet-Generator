@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Trash2, Edit2, X, Check } from 'lucide-react';
-import { Account } from '../../types';
+import { Account } from '../../db/db';
 import { useAccountStore } from '../../store/useAccountStore';
 
 interface AccountsTableProps {
@@ -12,6 +12,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({ accounts }) => {
   const [filter, setFilter] = useState<'all' | 'chargeable' | 'non-chargeable' | 'extra'>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Account>>({});
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const { updateAccount, deleteAccount } = useAccountStore();
 
@@ -34,19 +35,43 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({ accounts }) => {
     setEditForm({});
   };
 
-  const handleEditSave = (id: string) => {
-    updateAccount(id, editForm);
-    setEditingId(null);
-    setEditForm({});
+  const handleEditSave = async (id: string) => {
+    if (isProcessing) return;
+    try {
+      setIsProcessing(true);
+      await updateAccount(id, editForm);
+      setEditingId(null);
+      setEditForm({});
+    } catch (error) {
+      console.error('Failed to update account:', error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleStatusChange = (accountId: string, isActive: boolean) => {
-    updateAccount(accountId, { isActive });
+  const handleStatusChange = async (accountId: string, isActive: boolean) => {
+    if (isProcessing) return;
+    try {
+      setIsProcessing(true);
+      await updateAccount(accountId, { isActive });
+    } catch (error) {
+      console.error('Failed to update account status:', error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleDelete = (accountId: string) => {
+  const handleDelete = async (accountId: string) => {
+    if (isProcessing) return;
     if (window.confirm('Are you sure you want to delete this account? This action cannot be undone.')) {
-      deleteAccount(accountId);
+      try {
+        setIsProcessing(true);
+        await deleteAccount(accountId);
+      } catch (error) {
+        console.error('Failed to delete account:', error);
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 

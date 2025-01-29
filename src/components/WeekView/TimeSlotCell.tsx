@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Account } from '../../types';
+import { Account } from '../../db/db';
 import { X, ChevronDown } from 'lucide-react';
 import { useAccountStore } from '../../store/useAccountStore';
 import { useTimesheetStore } from '../../store/useTimesheetStore';
@@ -17,19 +17,27 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
   isWeekend,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [currentAccount, setCurrentAccount] = useState<Account | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { getActiveAccounts } = useAccountStore();
   const { addTimeEntry, removeTimeEntry, getTimeEntry } = useTimesheetStore();
 
   const weekId = format(date, 'yyyy-MM-dd');
   const slotId = `${weekId}-${time}`;
-  const account = getTimeEntry(weekId, slotId);
-
   const { chargeable, nonChargeable, extra } = getActiveAccounts();
 
   // Check if the time slot is within business hours (9 AM to 5 PM)
   const hour = parseInt(time.split(':')[0]);
   const isBusinessHours = hour >= 9 && hour < 17;
+
+  // Load the current entry when component mounts or weekId/slotId changes
+  useEffect(() => {
+    const loadEntry = async () => {
+      const entry = await getTimeEntry(weekId, slotId);
+      setCurrentAccount(entry || null);
+    };
+    loadEntry();
+  }, [weekId, slotId, getTimeEntry]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,13 +50,15 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleAccountSelect = (selectedAccount: Account) => {
-    addTimeEntry(weekId, slotId, selectedAccount);
+  const handleAccountSelect = async (selectedAccount: Account) => {
+    await addTimeEntry(weekId, slotId, selectedAccount);
+    setCurrentAccount(selectedAccount);
     setIsDropdownOpen(false);
   };
 
-  const handleRemove = () => {
-    removeTimeEntry(weekId, slotId);
+  const handleRemove = async () => {
+    await removeTimeEntry(weekId, slotId);
+    setCurrentAccount(null);
   };
 
   const renderAccountSection = (title: string, accounts: Account[]) => (
@@ -79,17 +89,17 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
       className={`
         relative h-8 border-b border-gray-200 transition-colors group
         ${isWeekend ? 'bg-[#DCE6F1]' : isBusinessHours ? 'bg-gray-50' : 'bg-white'}
-        ${account ? '' : 'hover:bg-gray-100'}
+        ${currentAccount ? '' : 'hover:bg-gray-100'}
       `}
-      style={account ? {
-        backgroundColor: account.color,
+      style={currentAccount ? {
+        backgroundColor: currentAccount.color,
         opacity: 0.8,
       } : undefined}
     >
-      {account ? (
+      {currentAccount ? (
         <div className="absolute inset-0 flex items-center justify-between px-2">
           <span className="text-xs font-medium truncate flex-1">
-            {account.jobId}
+            {currentAccount.jobId}
           </span>
           <button
             onClick={(e) => {
@@ -110,7 +120,7 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
         </button>
       )}
 
-      {isDropdownOpen && !account && (
+      {isDropdownOpen && !currentAccount && (
         <div 
           ref={dropdownRef}
           className="absolute left-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200 divide-y divide-gray-100"

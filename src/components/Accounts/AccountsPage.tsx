@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AccountForm } from './AccountForm';
 import { AccountsTable } from './AccountsTable';
 import { AccountGroups } from './AccountGroups';
@@ -7,6 +7,14 @@ import { Briefcase, Coffee, CircleDot } from 'lucide-react';
 
 export const AccountsPage: React.FC = () => {
   const accounts = useAccountStore((state) => state.accounts);
+  const loadAccounts = useAccountStore((state) => state.loadAccounts);
+  const initialized = useAccountStore((state) => state.initialized);
+
+  useEffect(() => {
+    if (!initialized) {
+      loadAccounts();
+    }
+  }, [initialized, loadAccounts]);
   
   // Filter active accounts by type
   const activeAccounts = accounts.filter(account => account.isActive);
