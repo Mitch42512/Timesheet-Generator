@@ -5,7 +5,11 @@ interface RoleRequirementsProps {
   role: string;
 }
 
-const categoryColors = {
+type CategoryColor = {
+  [key: string]: string;
+};
+
+const categoryColors: CategoryColor = {
   'Managing Clients and Relationships': 'rgba(0, 0, 255, 0.2)', // Blue
   'Winning and Selling Work': 'rgba(255, 215, 0, 0.2)', // Gold
   'Project Management': 'rgba(128, 0, 128, 0.2)', // Purple

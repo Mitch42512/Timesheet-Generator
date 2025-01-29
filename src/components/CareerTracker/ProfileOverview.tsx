@@ -1,7 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, Edit2, Check, X, Upload } from 'lucide-react';
 import { useUserStore } from '../../store/useUserStore';
 import { useResourceStore } from '../../store/useResourceStore';
+import { useImageStore } from '../../store/useImageStore';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../db/db';
 
 interface ProfileOverviewProps {
   onTabChange: (tab: string) => void;
@@ -10,10 +13,18 @@ interface ProfileOverviewProps {
 export const ProfileOverview: React.FC<ProfileOverviewProps> = ({ onTabChange }) => {
   const { name, position, updateName } = useUserStore();
   const { resources } = useResourceStore();
+  const { uploadImage, getImage } = useImageStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [customImage, setCustomImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Use live query to get the image
+  const storedImage = useLiveQuery(
+    async () => await getImage('profile-image'),
+    []
+  );
 
   // Get the 5 most recent resources
   const recentResources = [...resources]
@@ -25,14 +36,20 @@ export const ProfileOverview: React.FC<ProfileOverviewProps> = ({ onTabChange })
     setIsEditing(false);
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCustomImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setError(null);
+    setIsUploading(true);
+
+    try {
+      const imageData = await uploadImage(file);
+      // The image will be automatically updated through the live query
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -112,35 +129,42 @@ export const ProfileOverview: React.FC<ProfileOverviewProps> = ({ onTabChange })
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Inspirational Quote</h3>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-2"
-          >
-            <Upload className="w-4 h-4" />
-            Change Image
-          </button>
+          <div className="flex items-center gap-4">
+            {error && (
+              <span className="text-sm text-red-600">
+                {error}
+              </span>
+            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className={`text-sm text-blue-600 hover:text-blue-700 flex items-center gap-2 ${
+                isUploading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              <Upload className="w-4 h-4" />
+              {isUploading ? 'Uploading...' : 'Change Image'}
+            </button>
+          </div>
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleImageUpload}
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif"
             className="hidden"
           />
         </div>
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg">
-          <img
-            src={customImage || "https://raw.githubusercontent.com/yourusername/yourrepo/main/quote.jpg"}
-            alt="Inspirational Quote"
-            className="w-full h-full object-cover"
-          />
-          {customImage && (
-            <button
-              onClick={() => setCustomImage(null)}
-              className="absolute top-2 right-2 p-1 bg-white/80 rounded-full hover:bg-white"
-              title="Reset to default quote"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg bg-gray-100">
+          {storedImage ? (
+            <img
+              src={storedImage}
+              alt="Inspirational Quote"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              No image uploaded
+            </div>
           )}
         </div>
       </div>

@@ -31,6 +31,13 @@ export interface Account {
   budgetedHours?: number;
 }
 
+export interface UserImage {
+  id: string;
+  data: string;
+  type: string;
+  updatedAt: string;
+}
+
 export type WeekStatus = 'completed' | 'in-progress' | 'not-started';
 
 export interface WeekStatusEntry {
@@ -49,15 +56,17 @@ export class AppDb extends Dexie {
   accounts!: Table<Account>;
   weekStatuses!: Table<WeekStatusEntry>;
   weekNotes!: Table<WeekNotes>;
+  images!: Table<UserImage>;
 
   constructor() {
     super('AppDb');
-    this.version(4).stores({
+    this.version(5).stores({
       trafficLightItems: 'id, [role+category]',
       timesheetEntries: 'id, [weekId+slotId], accountId, date',
       accounts: 'id, jobId, name, group',
       weekStatuses: 'weekId',
-      weekNotes: 'weekId'
+      weekNotes: 'weekId',
+      images: 'id, updatedAt'
     });
   }
 }
