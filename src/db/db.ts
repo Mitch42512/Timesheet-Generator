@@ -38,6 +38,20 @@ export interface UserImage {
   updatedAt: string;
 }
 
+export interface ProfileImage {
+  id: string;
+  data: string;
+  type: string;
+  updatedAt: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  position: string;
+  updatedAt: string;
+}
+
 export type WeekStatus = 'completed' | 'in-progress' | 'not-started';
 
 export interface WeekStatusEntry {
@@ -57,16 +71,20 @@ export class AppDb extends Dexie {
   weekStatuses!: Table<WeekStatusEntry>;
   weekNotes!: Table<WeekNotes>;
   images!: Table<UserImage>;
+  profileImages!: Table<ProfileImage>;
+  userProfiles!: Table<UserProfile>;
 
   constructor() {
     super('AppDb');
-    this.version(5).stores({
+    this.version(7).stores({
       trafficLightItems: 'id, [role+category]',
       timesheetEntries: 'id, [weekId+slotId], accountId, date',
       accounts: 'id, jobId, name, group',
       weekStatuses: 'weekId',
       weekNotes: 'weekId',
-      images: 'id, updatedAt'
+      images: 'id, updatedAt',
+      profileImages: 'id, updatedAt',
+      userProfiles: 'id, updatedAt'
     });
   }
 }

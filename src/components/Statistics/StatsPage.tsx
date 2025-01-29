@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, PieChart, RefreshCw } from 'lucide-react';
 import { format, startOfYear, eachMonthOfInterval } from 'date-fns';
 import { useTimesheetStore } from '../../store/useTimesheetStore';
 import { AccountHoursSummary } from './AccountHoursSummary';
+import { useLiveQuery } from 'dexie-react-hooks';
+
+interface MonthStats {
+  month: string;
+  stats: {
+    chargeableHours: number;
+    utilization: number;
+  };
+}
 
 export const StatsPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -13,14 +22,27 @@ export const StatsPage: React.FC = () => {
     end: new Date(2025, 11, 31),
   });
 
-  const monthlyStats = months.map((month) => ({
-    month: format(month, 'MMMM'),
-    stats: calculateMonthlyStats(month),
-  }));
+  // Use live query to handle async stats calculation
+  const monthlyStats = useLiveQuery(
+    async () => {
+      const stats: MonthStats[] = [];
+      for (const month of months) {
+        const monthStats = await calculateMonthlyStats(month);
+        stats.push({
+          month: format(month, 'MMMM'),
+          stats: monthStats || { chargeableHours: 0, utilization: 0 }
+        });
+      }
+      return stats;
+    },
+    [months]
+  ) || [];
 
   const yearToDateStats = {
     totalChargeableHours: monthlyStats.reduce((sum, { stats }) => sum + stats.chargeableHours, 0),
-    averageUtilization: monthlyStats.reduce((sum, { stats }) => sum + stats.utilization, 0) / monthlyStats.length,
+    averageUtilization: monthlyStats.length > 0 
+      ? monthlyStats.reduce((sum, { stats }) => sum + stats.utilization, 0) / monthlyStats.length
+      : 0
   };
 
   const handleRefresh = () => {

@@ -3,6 +3,7 @@ import { useAccountStore } from '../../store/useAccountStore';
 import { useTimesheetStore } from '../../store/useTimesheetStore';
 import { startOfYear, eachWeekOfInterval, format } from 'date-fns';
 import { Account } from '../../types';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const AccountSummarySection: React.FC<{
   title: string;
@@ -57,27 +58,38 @@ const AccountSummarySection: React.FC<{
 export const AccountHoursSummary: React.FC = () => {
   const accounts = useAccountStore((state) => state.accounts);
   const getAccountHours = useTimesheetStore((state) => state.getAccountHours);
+  const yearStart = startOfYear(new Date(2025, 0, 1));
+  const weeks = eachWeekOfInterval({
+    start: yearStart,
+    end: new Date(2025, 11, 31),
+  });
 
-  const calculateTotalHours = (accountId: string) => {
-    const yearStart = startOfYear(new Date(2025, 0, 1));
-    const weeks = eachWeekOfInterval({
-      start: yearStart,
-      end: new Date(2025, 11, 31),
-    });
+  // Use live query to calculate account hours
+  const accountsWithHours = useLiveQuery(
+    async () => {
+      const accountHours: Record<string, number> = {};
+      
+      // Calculate hours for each account
+      for (const account of accounts) {
+        let totalHours = 0;
+        for (const week of weeks) {
+          const weekId = format(week, 'yyyy-MM-dd');
+          const hours = await getAccountHours(weekId, account.id);
+          totalHours += hours.total;
+        }
+        accountHours[account.id] = totalHours;
+      }
 
-    return weeks.reduce((total, weekStart) => {
-      const weekId = format(weekStart, 'yyyy-MM-dd');
-      const { total: weekTotal } = getAccountHours(weekId, accountId);
-      return total + weekTotal;
-    }, 0);
-  };
-
-  const accountsWithHours = accounts
-    .map(account => ({
-      ...account,
-      totalHours: calculateTotalHours(account.id),
-    }))
-    .filter(account => account.totalHours > 0);
+      // Combine account data with hours
+      return accounts
+        .map(account => ({
+          ...account,
+          totalHours: accountHours[account.id] || 0
+        }))
+        .filter(account => account.totalHours > 0);
+    },
+    [accounts, weeks]
+  ) || [];
 
   const chargeableAccounts = accountsWithHours
     .filter(account => account.isChargeable && account.group !== 'extra')

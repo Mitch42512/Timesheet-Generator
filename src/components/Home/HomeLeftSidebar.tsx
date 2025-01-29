@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
-import { Calendar as CalendarIcon, User, Plus, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Calendar as CalendarIcon, User, Plus, X, Upload } from 'lucide-react';
 import { format, startOfToday } from 'date-fns';
 import { useUserStore } from '../../store/useUserStore';
 import { useEventStore } from '../../store/useEventStore';
 import { MiniCalendar } from './MiniCalendar';
+import { useProfileImageStore } from '../../store/useProfileImageStore';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const positions = [
     { id: 'graduate', label: 'Graduate' },
@@ -15,8 +17,9 @@ const positions = [
 ];
 
 export const HomeLeftSidebar: React.FC = () => {
-  const { name, avatarUrl, updateName, position, updateAvatar, updatePosition } = useUserStore();
+  const { name, position, updateName, updatePosition, loadUserProfile, initialized } = useUserStore();
   const { events, addEvent, removeEvent } = useEventStore();
+  const { uploadProfileImage, getProfileImage } = useProfileImageStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
   const [showEventForm, setShowEventForm] = useState(false);
@@ -27,20 +30,49 @@ export const HomeLeftSidebar: React.FC = () => {
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleNameSubmit = () => {
-    updateName(editedName);
-    setIsEditing(false);
+  // Load user profile on mount
+  useEffect(() => {
+    if (!initialized) {
+      loadUserProfile();
+    }
+  }, [initialized, loadUserProfile]);
+
+  // Use live query to get the profile image
+  const profileImage = useLiveQuery(
+    async () => await getProfileImage('profile-image'),
+    []
+  );
+
+  const handleNameSubmit = async () => {
+    try {
+      setIsUpdating(true);
+      await updateName(editedName);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update name:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateAvatar(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setError(null);
+    setIsUploading(true);
+
+    try {
+      await uploadProfileImage(file);
+      // The image will be automatically updated through the live query
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -54,8 +86,19 @@ export const HomeLeftSidebar: React.FC = () => {
     setShowEventForm(false);
   };
 
-  const setSelectedPosition = (newPosition: string) => {
-    updatePosition(newPosition);
+  const setSelectedPosition = async (newPosition: string) => {
+    try {
+      setIsUpdating(true);
+      await updatePosition(newPosition);
+    } catch (error) {
+      console.error('Failed to update position:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  if (!initialized) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -67,10 +110,14 @@ export const HomeLeftSidebar: React.FC = () => {
             className="relative w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer group"
             onClick={() => fileInputRef.current?.click()}
           >
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+            {profileImage ? (
+              <img src={profileImage} alt="Avatar" className="w-full h-full rounded-full object-cover" />
             ) : (
-              <User className="w-8 h-8 text-gray-400" />
+              <div className="w-full h-full bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-3xl font-bold text-blue-600">
+                  {name.split(' ').map(n => n[0]).join('')}
+                </span>
+              </div>
             )}
             <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
               <span className="text-xs text-white">Change</span>
@@ -80,12 +127,11 @@ export const HomeLeftSidebar: React.FC = () => {
             type="file"
             ref={fileInputRef}
             className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
+            accept="image/jpeg,image/png,image/gif"
+            onChange={handleImageUpload}
           />
           <div className="flex-1">
-            <div>
-              {isEditing ? (
+            {isEditing ? (
               <div className="space-y-2">
                 <input
                   type="text"
@@ -93,13 +139,15 @@ export const HomeLeftSidebar: React.FC = () => {
                   onChange={(e) => setEditedName(e.target.value)}
                   className="w-full px-2 py-1 border rounded"
                   autoFocus
+                  disabled={isUpdating}
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={handleNameSubmit}
                     className="text-sm text-green-600 hover:text-green-700"
+                    disabled={isUpdating}
                   >
-                    Save
+                    {isUpdating ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={() => {
@@ -107,6 +155,7 @@ export const HomeLeftSidebar: React.FC = () => {
                       setEditedName(name);
                     }}
                     className="text-sm text-gray-600 hover:text-gray-700"
+                    disabled={isUpdating}
                   >
                     Cancel
                   </button>
@@ -120,16 +169,18 @@ export const HomeLeftSidebar: React.FC = () => {
                 {name}
               </div>
             )}
-            </div>
-            <div>
-              <select
-                value={position}
-                onChange={e => setSelectedPosition(e.target.value)}
-              >
-                {positions.map(({id, label}) => (<option key={id} value={id}>{label}</option>))}
-              </select>
-            </div>
-            <div className="text-sm text-gray-500">Welcome back!</div>
+            <select
+              value={position}
+              onChange={(e) => setSelectedPosition(e.target.value)}
+              className="mt-1 text-sm text-gray-500 border-none bg-transparent focus:ring-0"
+              disabled={isUpdating}
+            >
+              {positions.map((pos) => (
+                <option key={pos.id} value={pos.id}>
+                  {pos.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
