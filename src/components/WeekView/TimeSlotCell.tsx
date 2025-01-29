@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Account } from '../../db/db';
 import { X, ChevronDown } from 'lucide-react';
 import { useAccountStore } from '../../store/useAccountStore';
 import { useTimesheetStore } from '../../store/useTimesheetStore';
 import { format } from 'date-fns';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../db/db';
 
 interface TimeSlotCellProps {
   time: string;
@@ -17,10 +19,10 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
   isWeekend,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [currentAccount, setCurrentAccount] = useState<Account | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { getActiveAccounts } = useAccountStore();
-  const { addTimeEntry, removeTimeEntry, getTimeEntry } = useTimesheetStore();
+  const { addTimeEntry, removeTimeEntry } = useTimesheetStore();
 
   const weekId = format(date, 'yyyy-MM-dd');
   const slotId = `${weekId}-${time}`;
@@ -30,35 +32,54 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
   const hour = parseInt(time.split(':')[0]);
   const isBusinessHours = hour >= 9 && hour < 17;
 
-  // Load the current entry when component mounts or weekId/slotId changes
-  useEffect(() => {
-    const loadEntry = async () => {
-      const entry = await getTimeEntry(weekId, slotId);
-      setCurrentAccount(entry || null);
-    };
-    loadEntry();
-  }, [weekId, slotId, getTimeEntry]);
+  // Use live query to get the current entry
+  const currentAccount = useLiveQuery(
+    async () => {
+      const entry = await db.timesheetEntries
+        .where(['weekId', 'slotId'])
+        .equals([weekId, slotId])
+        .first();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+      if (entry) {
+        return await db.accounts.get(entry.accountId);
       }
-    };
+      return null;
+    },
+    [weekId, slotId]
+  );
 
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  React.useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleAccountSelect = async (selectedAccount: Account) => {
-    await addTimeEntry(weekId, slotId, selectedAccount);
-    setCurrentAccount(selectedAccount);
-    setIsDropdownOpen(false);
+    try {
+      setIsLoading(true);
+      await addTimeEntry(weekId, slotId, selectedAccount);
+      setIsDropdownOpen(false);
+    } catch (error) {
+      console.error('Failed to add time entry:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRemove = async () => {
-    await removeTimeEntry(weekId, slotId);
-    setCurrentAccount(null);
+    try {
+      setIsLoading(true);
+      await removeTimeEntry(weekId, slotId);
+    } catch (error) {
+      console.error('Failed to remove time entry:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderAccountSection = (title: string, accounts: Account[]) => (
@@ -72,6 +93,7 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
             key={acc.id}
             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
             onClick={() => handleAccountSelect(acc)}
+            disabled={isLoading}
           >
             <div 
               className="w-3 h-3 rounded-full" 
@@ -90,6 +112,7 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
         relative h-8 border-b border-gray-200 transition-colors group
         ${isWeekend ? 'bg-[#DCE6F1]' : isBusinessHours ? 'bg-gray-50' : 'bg-white'}
         ${currentAccount ? '' : 'hover:bg-gray-100'}
+        ${isLoading ? 'opacity-50 cursor-wait' : ''}
       `}
       style={currentAccount ? {
         backgroundColor: currentAccount.color,
@@ -107,6 +130,7 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
               handleRemove();
             }}
             className="ml-1 p-1 hover:bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            disabled={isLoading}
           >
             <X className="w-3 h-3" />
           </button>
@@ -115,6 +139,7 @@ export const TimeSlotCell: React.FC<TimeSlotCellProps> = ({
         <button
           className="w-full h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          disabled={isLoading}
         >
           <ChevronDown className="w-4 h-4 text-gray-400" />
         </button>
