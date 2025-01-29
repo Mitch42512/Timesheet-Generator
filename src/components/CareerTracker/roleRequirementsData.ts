@@ -20,7 +20,7 @@ export const roleRequirements: RoleRequirements = {
     {
       title: 'Winning and Selling Work',
       items: [
-        'Insert Graduate Roles',
+        'Insert Graduate Roles'
       ]
     },
     {
@@ -28,7 +28,7 @@ export const roleRequirements: RoleRequirements = {
       items: [
         'Insert Graduate Roles',
         'Insert Graduate Roles',
-        'Insert Graduate Roles',
+        'Insert Graduate Roles'
       ]
     },
     {
@@ -36,14 +36,14 @@ export const roleRequirements: RoleRequirements = {
       items: [
         'Insert Graduate Roles',
         'Insert Graduate Roles',
-        'Insert Graduate Roles',
+        'Insert Graduate Roles'
       ]
     },
     {
       title: 'People Management',
       items: [
         'Insert Graduate Roles',
-        'Insert Graduate Roles',
+        'Insert Graduate Roles'
       ]
     },
     {
@@ -51,7 +51,7 @@ export const roleRequirements: RoleRequirements = {
       items: [
         'Insert Graduate Roles',
         'Insert Graduate Roles',
-        'Insert Graduate Roles',
+        'Insert Graduate Roles'
       ]
     }
   ],
@@ -230,53 +230,61 @@ export const roleRequirements: RoleRequirements = {
     {
       title: 'Managing Clients and Relationships',
       items: [
-        'Actively manages the day to day relationship and for manageing client expectations and implications regarding hiigh complexiity project design, costs and timings.',
-        'Responsiible for developing and buiilding strrong relationships in client organisation (Including senior stakeholders and agency partners)',
-        'Is able to identify new business opportunities'
+        'Leads strategic client relationships and manages complex stakeholder expectations',
+        'Develops and maintains strong relationships with senior client stakeholders',
+        'Proactively identifies and pursues new business opportunities',
+        'Provides strategic guidance on complex project design and implementation',
+        'Manages high-complexity project costs and timelines effectively'
       ]
     },
     {
       title: 'Winning and Selling Work',
       items: [
-        'Plays an active role in pitching the proposal and helps develop creative approach to proposal delivery'
+        'Takes lead role in proposal development and pitching',
+        'Develops creative approaches to proposal delivery',
+        'Identifies and pursues strategic opportunities for account growth',
+        'Contributes to practice area strategy and development'
       ]
     },
     {
       title: 'Project Management',
       items: [
-        'Accountable for monitoring team against project milestones. Can identify medium/high complexity risks and solutions and can solve independently keeping relevant parties informed, escalates to AD level and above if required.',
-        'Develops complex questionnaires and ensures questions arre aligned with client objections',
-        'Challenges cliient thhinking on questionnaire design',
-        'Can guide others on input sheets and the use of QLIB',
-        'Evident as a go-to expert for junior staff on projects processess. Identifies current training gaps in team and seeks out ways to address these',
-        'Accountable for managing project capacity and effective resourcing',
-        'Champions SDM ways of working and coaches on best practcie across relevant projects',
-        'Encourages others to seek out and identify automation opportunities'
+        'Manages complex project portfolios independently',
+        'Identifies and resolves high-complexity risks and challenges',
+        'Provides strategic direction on questionnaire design and methodology',
+        'Mentors team members on project management best practices',
+        'Champions efficiency and automation initiatives',
+        'Leads implementation of best practices across projects'
       ]
     },
     {
       title: 'Delivery and Execution',
       items: [
-        'Accountable for the implementation fo the Goldstar framework on all their accounts',
-        'Can effectively plan and coach others on the anaysis and reporting around clients real business issues',
-        'Proven ability at insiigating and leading the data analysis to answer theh clients business questions. Seeks new ways to analyse the data to answer clients questions',
-        'Able to present the entirety of the presentation of research results for own projects. Can effectively facilitate a workshop'
+        'Ensures excellence in project delivery and client satisfaction',
+        'Provides strategic guidance on analysis and reporting',
+        'Leads development of innovative solutions to client challenges',
+        'Presents complex findings to senior stakeholders effectively',
+        'Facilitates strategic workshops and client sessions'
       ]
     },
     {
       title: 'People Management',
       items: [
-        'Self: Is aware of own goals and looks for opportunities locally too achieve these.Takes advantage of training opportunities on offer and shares learning with the wider teams. Remains positive and responds to pressure in a calm considered manner when approached',
-        'Others: Proven ability at coaching and mentoring junior staff. Is beginning to learn basics of people management techniques to get the best out of team members. Effectively supports any business changes to team in a positive and collaborative manner. Driver an open, regular, honest feedback culture, ensuriing collaborative prooblem solving and iimplementation of learning'
+        'Develops and mentors junior team members',
+        'Implements effective performance management practices',
+        'Drives positive team culture and engagement',
+        'Provides strategic guidance on career development',
+        'Manages team resources and capacity effectively'
       ]
     },
     {
       title: 'Commercial Acumen',
       items: [
-        'Intermediate negootion skills (negotiates with clients on costs/tiimeliines and scope)',
-        'Responsible for delivering on budgeted NS and profit; Identifies recurring cost overruns/other risk factors on projects.',
-        'Contributes to the commercial success of a project through actively putting a plan in place to address job profitability challenges',
-        '100% compliance of weekly accurate timesheet submissions'
+        'Manages complex project financials and budgets',
+        'Develops and implements pricing strategies',
+        'Ensures project and account profitability',
+        'Identifies and pursues growth opportunities',
+        'Maintains high standards of financial reporting and compliance'
       ]
     }
   ],
@@ -332,7 +340,7 @@ export const roleRequirements: RoleRequirements = {
         'Manages client base to target profitability levels; ensures team utilisation levels.',
         'Manage profit through effective resource planning and sharing.',
         'Accountable for providing accurate and timely financial data (pipeline, acceptances, completions, phasing).',
-        'Coaches staff around financial acumen & issues. Proven ability at resolving financial issues timeously (negotiating fee increases, scope creep, and securing overdue payments).',
+        'Coaches staff around financial acumen & issues. Proven ability at resolving financial issues timeously (negotiating fee increases, scope creep, and securing overdue payments).'
       ]
     }
   ]

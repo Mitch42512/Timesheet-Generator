@@ -9,13 +9,14 @@ export const Overview: React.FC<OverviewProps> = ({ role }) => {
   const [categoryProgress, setCategoryProgress] = useState<Record<string, number>>({});
   const [overallProgress, setOverallProgress] = useState(0);
 
+  // Update: *300 number refers to the opacity of the color
   const categories = [
-    { id: 'clientRelations', label: 'Client Relations', color: 'bg-blue-100' },
-    { id: 'sellingWork', label: 'Selling Work', color: 'bg-yellow-100' },
-    { id: 'projectManagement', label: 'Project Management', color: 'bg-purple-100' },
-    { id: 'delivery', label: 'Delivery', color: 'bg-green-100' },
-    { id: 'peopleManagement', label: 'People Management', color: 'bg-pink-100' },
-    { id: 'commercialAcumen', label: 'Commercial Acumen', color: 'bg-orange-100' },
+    { id: 'clientRelations', label: 'Client Relations', color: 'bg-blue-300' },
+    { id: 'sellingWork', label: 'Selling Work', color: 'bg-yellow-300' },
+    { id: 'projectManagement', label: 'Project Management', color: 'bg-purple-300' },
+    { id: 'delivery', label: 'Delivery', color: 'bg-green-300' },
+    { id: 'peopleManagement', label: 'People Management', color: 'bg-pink-300' },
+    { id: 'commercialAcumen', label: 'Commercial Acumen', color: 'bg-orange-300' },
   ];
 
   // Use live query for each category

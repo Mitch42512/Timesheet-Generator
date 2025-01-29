@@ -55,7 +55,7 @@ function App() {
       <div className="fixed top-0 left-0 right-0 z-50">
         <header className="bg-[#4F81BD] dark:bg-[#2C4B70] text-white">
           <div className="max-w-[1920px] mx-auto py-2 px-[10px]">
-            <h1 className="text-xl font-bold">KANTAR Timesheet</h1>
+            <h1 className="text-xl font-bold">My Timesheet</h1>
           </div>
         </header>
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
