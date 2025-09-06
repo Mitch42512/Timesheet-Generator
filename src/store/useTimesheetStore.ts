@@ -213,29 +213,36 @@ export const useTimesheetStore = create<TimesheetStore>()((set, get) => ({
         start: startOfWeek(weekStart, { weekStartsOn: 1 }),
         end: endOfWeek(weekStart, { weekStartsOn: 1 }),
       });
-
+  
       let chargeableHours = 0;
+      let activeDays = 0; // number of weekdays with at least 1 entry
+  
       for (const day of days) {
         const dayId = format(day, 'yyyy-MM-dd');
         const entries = await db.timesheetEntries
           .where('weekId')
           .equals(dayId)
           .toArray();
-
-        const accountIds = entries.map(entry => entry.accountId);
-        const accounts = await db.accounts
-          .where('id')
-          .anyOf(accountIds)
-          .filter(account => account.isChargeable && account.group !== 'extra')
-          .count();
-
-        chargeableHours += accounts * 0.5;
+  
+        if (entries.length > 0) {
+          activeDays++;
+        }
+  
+        for (const entry of entries) {
+          const account = await db.accounts.get(entry.accountId);
+          if (account?.isChargeable && account.group !== 'extra') {
+            chargeableHours += 0.5; // each slot = 30 minutes
+          }
+        }
       }
-
-      return {
-        chargeableHours,
-        utilization: (chargeableHours / 39) * 100,
-      };
+  
+      // expected baseline hours = 7.8h per active day
+      const expectedHours = activeDays * 7.8;
+      const utilization = expectedHours > 0 
+        ? (chargeableHours / expectedHours) * 100 
+        : 0;
+  
+      return { chargeableHours, utilization };
     } catch (error) {
       console.error('❌ Failed to calculate week stats:', error);
       return { chargeableHours: 0, utilization: 0 };
@@ -248,29 +255,34 @@ export const useTimesheetStore = create<TimesheetStore>()((set, get) => ({
         start: startOfMonth(month),
         end: endOfMonth(month),
       });
-
-      let totalChargeableHours = 0;
-      let weekCount = 0;
-
+  
+      let completedWeekCount = 0;
+      let totalUtilization = 0;
+  
       for (const weekStart of weeks) {
         const weekId = format(weekStart, 'yyyy-MM-dd');
+  
+        // check if week is completed
+        const weekStatus = await useWeekStore.getState().getWeekStatus(weekId);
+        if (weekStatus !== 'completed') {
+          continue; // skip incomplete weeks
+        }
+  
         const weekStats = await get().calculateWeekStats(weekId);
-        totalChargeableHours += weekStats.chargeableHours;
-        weekCount++;
+        totalUtilization += weekStats.utilization;
+        completedWeekCount++;
       }
-
-      const totalPossibleHours = weekCount * 39; // 39 hours per week
-      const utilization = totalPossibleHours > 0 
-        ? (totalChargeableHours / totalPossibleHours) * 100 
-        : 0;
-
+  
+      const avgUtilization =
+        completedWeekCount > 0 ? totalUtilization / completedWeekCount : 0;
+  
       return {
-        chargeableHours: totalChargeableHours,
-        utilization,
+        chargeableHours: 0, // you could sum actual hours too if you want
+        utilization: avgUtilization,
       };
     } catch (error) {
       console.error('❌ Failed to calculate monthly stats:', error);
       return { chargeableHours: 0, utilization: 0 };
     }
-  },
+  },  
 }));
